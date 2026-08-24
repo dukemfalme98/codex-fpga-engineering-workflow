@@ -1,0 +1,17 @@
+name: validate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate package
+        shell: pwsh
+        run: ./scripts/validate-package.ps1

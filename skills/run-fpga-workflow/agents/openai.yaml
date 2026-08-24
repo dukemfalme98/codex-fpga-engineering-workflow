@@ -1,0 +1,8 @@
+interface:
+  display_name: "FPGA Engineering Workflow"
+  short_description: "Single-writer FPGA design, verification, timing, and sign-off"
+  default_prompt: "Use $run-fpga-workflow for this FPGA task with evidence, isolated validation, stable-diff supervision, and independent sign-off."
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+policy:
+  allow_implicit_invocation: true
