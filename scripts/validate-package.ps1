@@ -13,7 +13,10 @@ $required = @(
     'skills/run-fpga-workflow/references/task-profiles.md',
     'skills/run-fpga-workflow/references/improvement-policy.md',
     'skills/run-fpga-workflow/references/improvement-evidence.md',
-    'templates/AGENTS.fpga.md', 'README.md', 'README.en.md', 'LICENSE', 'SECURITY.md', 'docs/research.md'
+    'templates/AGENTS.fpga.md', 'README.md', 'assets/hero.svg', 'LICENSE', 'SECURITY.md',
+    'VERSION', 'CHANGELOG.md', 'COMPATIBILITY.md', 'docs/research.md',
+    'docs/en/architecture.md', 'docs/en/roles.md', 'docs/en/installation.md',
+    'docs/en/usage.md', 'docs/en/safety-and-evidence.md'
 )
 foreach ($rel in $required) {
     $path = Join-Path $root ($rel -replace '/', [IO.Path]::DirectorySeparatorChar)
@@ -37,8 +40,10 @@ foreach ($file in $agentFiles) {
 }
 foreach ($name in $expectedNames) { if (-not $seen.ContainsKey($name)) { Add-CheckError "Missing agent: $name" } }
 
+$expectedVersion = (Get-Content -LiteralPath (Join-Path $root 'VERSION') -Raw).Trim()
+if ($expectedVersion -notmatch '^\d+\.\d+\.\d+$') { Add-CheckError "VERSION is not a semantic version: $expectedVersion" }
 $plugin = Get-Content -LiteralPath (Join-Path $root '.codex-plugin\plugin.json') -Raw | ConvertFrom-Json
-if ($plugin.name -ne 'codex-fpga-engineering-workflow' -or $plugin.version -ne '0.1.0' -or $plugin.license -ne 'MIT') { Add-CheckError 'Plugin identity/version/license mismatch.' }
+if ($plugin.name -ne 'codex-fpga-engineering-workflow' -or $plugin.version -ne $expectedVersion -or $plugin.license -ne 'MIT') { Add-CheckError 'Plugin identity/version/license mismatch.' }
 if ($plugin.skills -ne './skills/') { Add-CheckError 'Plugin skills path mismatch.' }
 foreach ($unsupported in @('apps','mcpServers','hooks')) { if ($plugin.PSObject.Properties.Name -contains $unsupported) { Add-CheckError "Unexpected manifest field: $unsupported" } }
 
@@ -49,15 +54,29 @@ if ($skillText -notmatch 'only `fpga_engineer` writes product') { Add-CheckError
 $allTextFiles = Get-ChildItem -LiteralPath $root -File -Recurse | Where-Object { ($_.Extension -in @('.md','.toml','.json','.yaml','.yml','.ps1','.svg','.txt') -or $_.Name -in @('LICENSE','VERSION','.gitignore','.gitattributes')) -and $_.FullName -ne $PSCommandPath }
 $privatePattern = '(?i)(' + 'C:' + '\\Users\\' + '|/home/[^/]+/|' + '\.codex\\memories' + '|D:' + '\\PDS|' + 'customer[-_ ]?name\s*[:=])'
 $printSpecificPattern = '(?i)(' + 'print' + 'ing head|' + 'print' + 'head|' + [char]0x55B7 + [char]0x5934 + '|' + [char]0x5DE5 + [char]0x4E1A + [char]0x6253 + [char]0x5370 + ')'
+$cjkPattern = '[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]'
+$deletedReferencePattern = '(?i)(README\.en\.md|CONTRIBUTING\.zh-CN\.md|docs[/\\]zh-CN)'
 foreach ($file in $allTextFiles) {
     try { $content = [IO.File]::ReadAllText($file.FullName, [Text.UTF8Encoding]::new($false, $true)) } catch { Add-CheckError "Invalid UTF-8: $($file.FullName)"; continue }
     if ($content -match '(?i)(ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|AKIA[0-9A-Z]{16})') { Add-CheckError "Possible secret: $($file.FullName)" }
     if ($content -match $privatePattern) { Add-CheckError "Possible private/absolute path or customer marker: $($file.FullName)" }
     if ($content -match $printSpecificPattern) { Add-CheckError "Industrial-print-specific wording remains: $($file.FullName)" }
+    if ($content -match $cjkPattern) { Add-CheckError "CJK Unified Ideograph remains in public text: $($file.FullName)" }
+    if ($content -match $deletedReferencePattern) { Add-CheckError "Reference to a removed localized document remains: $($file.FullName)" }
+}
+
+foreach ($removedPath in @('README.en.md', 'CONTRIBUTING.zh-CN.md')) {
+    if (Test-Path -LiteralPath (Join-Path $root ($removedPath -replace '/', [IO.Path]::DirectorySeparatorChar))) {
+        Add-CheckError "Removed localized path still exists: $removedPath"
+    }
+}
+$removedDocsPath = Join-Path $root 'docs\zh-CN'
+if ((Test-Path -LiteralPath $removedDocsPath) -and (Get-ChildItem -LiteralPath $removedDocsPath -Force | Select-Object -First 1)) {
+    Add-CheckError 'Removed localized path still contains files: docs/zh-CN'
 }
 
 if ($errors.Count -gt 0) {
     $errors | ForEach-Object { Write-Host "ERROR: $_" -ForegroundColor Red }
     throw "Package validation failed with $($errors.Count) error(s)."
 }
-Write-Host "Package validation passed: 12 agents, role boundaries, plugin/skill references, UTF-8, and public-content scans."
+Write-Host "Package validation passed for version $expectedVersion`: 12 agents, role boundaries, plugin/skill references, UTF-8, English-only public text, and public-content scans."
