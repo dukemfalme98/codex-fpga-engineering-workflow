@@ -1,0 +1,7 @@
+@echo off
+setlocal
+echo TOOL_ENV_FAIL: the __VENDOR__ native build recipe is not configured.
+echo Confirm the exact tool, version, project, and part, then replace this file
+echo with the validated native Tcl or CLI adapter. Formal output belongs in:
+echo   %~2\project\par
+exit /b 1

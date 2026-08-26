@@ -126,8 +126,9 @@ If project evidence conflicts with a remembered pattern, the project evidence wi
 - Verification authors do not independently accept evidence produced by models/checkers they changed.
 - Diagnostic/smoke completion is never mislabeled as functional `SIMULATION_PASS`.
 - Formal evidence is independently accepted by `fpga_reviewer` only when formal proof is used for an acceptance claim.
-- All Codex-generated process files use project-root `codex_out`.
+- Formal vendor build state uses `project/par`; formal ModelSim/Questa state uses `simulation/work`; Codex-created diagnostics and review packets use project-root `codex_out`.
 - Generated standard directories are canonical: `project/`, `project/par/`, `project/script/`, `simulation/`, `linter/`, `release/`, and `codex_out/`; numbered variants are not generated.
+- Generated-project desktop entry points use `%~dp0`-anchored BAT plus confirmed native Tcl/DO/CLI and do not depend on Codex-private PowerShell.
 - Automatic repair stops after three rounds or two consecutive no-progress rounds.
 
 ## Stable artifacts and shadow evidence

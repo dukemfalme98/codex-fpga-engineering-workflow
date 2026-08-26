@@ -1,0 +1,21 @@
+@echo off
+setlocal EnableExtensions
+set "SCRIPT_DIR=%~dp0"
+for %%I in ("%SCRIPT_DIR%..\..") do set "PROJECT_ROOT=%%~fI"
+call "%SCRIPT_DIR%setting.bat"
+if errorlevel 1 goto :FAIL
+set "ACTION=%~1"
+if "%ACTION%"=="" set "ACTION=compile"
+if not exist "%SCRIPT_DIR%vendor-build.bat" (
+  echo SCRIPT_PATH_FAIL: vendor-build.bat is missing.
+  goto :FAIL
+)
+call "%SCRIPT_DIR%vendor-build.bat" "%ACTION%" "%PROJECT_ROOT%"
+set "RC=%ERRORLEVEL%"
+goto :DONE
+:FAIL
+set "RC=1"
+:DONE
+echo.
+pause
+exit /b %RC%

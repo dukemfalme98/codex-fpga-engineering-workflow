@@ -34,6 +34,8 @@ Create only the artifacts needed to support the requested claim under `codex_out
 
 Use the templates in [workflow artifacts](references/workflow-artifacts.md). Do not create a full proof packet merely because the task is small. Artifacts organize evidence; they never replace source, elaboration, simulation, CDC/RDC, STA, or board results.
 
+Separate formal user tool state from Codex diagnostics. Formal vendor project databases, native logs, and reports belong in `project/par`; formal ModelSim/Questa export files, local work libraries, logs, and wave databases belong in `simulation/work`; release artifacts belong in `release`. Codex-created experiments, parallel diagnostic copies, indexes, temporary libraries, mutations, and review packets belong in `codex_out/<run-id>`. If the user asks Codex to validate the formal desktop entry point, execute that BAT serially and allow its native output directories; a direct inner command does not prove the BAT works.
+
 ## 3. Lead, bounded impact, and specialist routing
 
 The `fpga_architect` freezes the task, impact, and cycle contracts, Requirement -> Design -> Test traceability, ownership, and acceptance. Bound temporal review to one primary clock domain and one transaction/dataflow impact cone, including reverse `ready`/backpressure and aligned data, valid, last/keep, ID/tag, error, enable, reset, stall, flush, abort, FSM, counter, FIFO, and RAM state.
@@ -64,7 +66,7 @@ For long/high-risk work, use stable checkpoints: stop the writer after a coheren
 
 ## 5. Deterministic project toolflow
 
-Generated and formally normalized projects use the exact canonical directories `project/`, `project/par/`, `project/script/`, `simulation/`, `linter/`, `release/`, and `codex_out/` as described in [project layout](references/project-layout.md). Never generate numbered standard directories such as `project2`, `par2`, or `script2`. Existing foreign projects may be inspected or imported, but normalized output uses the canonical names. Keep each visible `script/` directory clean: `run.bat`, settings, canonical lists, and vendor Tcl/do files stay at its root; PowerShell helpers, only when needed, live under `script/ai_run/`. All Codex-generated process files go under project-root `codex_out`; do not use a second default output root or scatter work libraries/databases through source directories.
+Generated and formally normalized projects use the exact canonical directories `project/`, `project/par/`, `project/script/`, `simulation/`, `linter/`, `release/`, and `codex_out/` as described in [project layout](references/project-layout.md). Never generate numbered standard directories such as `project2`, `par2`, or `script2`. Existing foreign projects may be inspected or imported, but normalized output uses the canonical names. Keep visible `script/` directories clean: `run.bat`, `setting.bat`, canonical lists, and confirmed vendor Tcl/DO files stay at their roots. The formal user desktop runtime uses BAT plus vendor-native Tcl/DO/CLI and must not depend on a `pwsh.exe` visible only inside Codex. Package installation, Codex-side scanning, and scaffolding may still use PowerShell internally.
 
 Automatic vendor selection supports only:
 
@@ -75,7 +77,9 @@ Automatic vendor selection supports only:
 
 Multiple supported vendors, unsupported vendor project markers, or missing evidence fail closed and prompt the user. A generated standard project contains exactly one selected adapter. Use [vendor adapters](references/vendor-adapters.md) and the deterministic helpers in `scripts/`; do not guess commands, fabricate primitive models, silently substitute versions, or modify global tool/library mappings.
 
-Each `run.bat` locates itself with `%~dp0`, updates deterministic RTL/IP/TB file lists, runs preflight, creates an isolated job under `codex_out`, invokes the selected adapter, and returns a meaningful exit code and evidence summary. An official library recipe may compile only for an exact supported vendor/tool/family/simulator tuple into `codex_out/_cache/simlibs`; otherwise fail with a preparation checklist.
+Each `run.bat` locates itself with `%~dp0`, verifies deterministic RTL/IP/TB lists and preflight facts, invokes exactly one native adapter, and returns the real exit code. Build BAT defaults to a bounded compile/synthesis checkpoint and writes formal state under `project/par`. Simulation BAT defaults to the configured GUI simulator, supports `batch`, and writes formal state under `simulation/work`. An official library recipe may compile only for an exact supported vendor/tool/family/simulator tuple; Codex-built caches remain under `codex_out/_cache/simlibs`, while a confirmed user-maintained compiled library may be referenced by a project-local simulator mapping.
+
+If the selected simulator is ModelSim/Questa, validate its actual `vlib/vmap/vlog/vcom`, load/elaboration, and run stages—XSim is not substitute evidence. Xilinx IP simulation generates output products and exports IP user/static files first. Inspect the actual Windows export artifacts instead of assuming a filename: Vivado can emit `.sh + compile.do` rather than `compile.bat`. A BAT/DO wrapper may invoke the emitted `compile.do`, create its required parent library, correct only a local `modelsim.ini`, return nonzero on compile failure, and block load/run after that failure. Never edit global simulator mappings.
 
 ## 6. Proportionate evidence profiles
 

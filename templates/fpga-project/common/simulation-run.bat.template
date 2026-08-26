@@ -1,0 +1,21 @@
+@echo off
+setlocal EnableExtensions
+set "SCRIPT_DIR=%~dp0"
+for %%I in ("%SCRIPT_DIR%..\..") do set "PROJECT_ROOT=%%~fI"
+call "%PROJECT_ROOT%\project\script\setting.bat"
+if errorlevel 1 goto :FAIL
+set "MODE=%~1"
+if "%MODE%"=="" set "MODE=gui"
+if not exist "%SCRIPT_DIR%vendor-sim.bat" (
+  echo SCRIPT_PATH_FAIL: vendor-sim.bat is missing.
+  goto :FAIL
+)
+call "%SCRIPT_DIR%vendor-sim.bat" "%MODE%" "%PROJECT_ROOT%"
+set "RC=%ERRORLEVEL%"
+goto :DONE
+:FAIL
+set "RC=1"
+:DONE
+echo.
+pause
+exit /b %RC%

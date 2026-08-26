@@ -30,7 +30,7 @@ Require exact manuals/schematics and safe defaults before physical steps. Separa
 - Firmware/drivers: `embedded_engineer` in a later sequential batch.
 - Testbench/assertions/reference models: `verification_engineer` in a later sequential batch.
 - Reviews: read-only; reviewers never fix findings.
-- EDA output: unique ignored `codex_out/<run-id>/...` directory per job; never commit vendor databases or generated IP.
+- EDA output: formal vendor build state uses `project/par`; formal ModelSim/Questa state uses `simulation/work`; Codex-created diagnostic variants use unique ignored `codex_out/<run-id>/...` directories. Never commit vendor databases or generated IP.
 
 ## Minimum sign-off evidence
 

@@ -4,23 +4,23 @@ Standard FPGA project scaffold for **__VENDOR__**. Project-specific device, cloc
 
 ## One-click entry points
 
-- `project/script/run.bat`: refreshes file lists, runs preflight, then invokes the selected build adapter.
-- `simulation/script/run.bat`: refreshes file lists, runs preflight, then invokes the selected simulation adapter.
-- `linter/script/run.bat`: refreshes file lists, runs preflight, then invokes the configured lint tool.
+- `project/script/run.bat`: invokes the confirmed native build adapter; no argument defaults to a compile/synthesis checkpoint.
+- `simulation/script/run.bat`: invokes the confirmed native simulator adapter; no argument defaults to GUI and `batch` supports automation.
+- `linter/script/run.bat`: invokes a configured real lint tool or fails closed.
 
-The visible `script/` directories contain only the user-facing batch entry point, settings, canonical lists, and optional Tcl/do files. PowerShell helpers are isolated under each `script/ai_run/`; users do not need to invoke them directly.
+The visible `script/` directories contain only user-facing BAT entry points, `setting.bat`, canonical lists, and confirmed Tcl/DO files. Generated-project desktop runtime does not require Codex-bundled PowerShell. Package installation and Codex-side scaffolding may still use PowerShell internally.
 
-Copy `project/script/toolchain.local.psd1.example` to the ignored `toolchain.local.psd1`, then set exact installed executable paths and confirmed arguments. A missing tool, vendor library, source, case, or project marker returns `UNVERIFIED`; it is not silently replaced.
+The scaffolded `vendor-build.bat` and `vendor-sim.bat` intentionally fail closed. After the exact device, tool version, project marker, simulator, and vendor libraries are confirmed, replace those placeholders with the validated native Tcl/DO/CLI recipes. A missing tool, library, source, case, or target remains `UNVERIFIED`; it is not silently replaced.
 
-Generated process files belong only under `codex_out/`. Release candidates are promoted explicitly to `release/output/` after project-defined review.
+Formal vendor project state, databases, logs, and reports belong under `project/par`. Formal ModelSim/Questa export, local work libraries, logs, and waves belong under `simulation/work`. Codex experiments and review packets belong under `codex_out`. Release candidates are promoted explicitly to `release/output/` after project-defined review.
 
 ## Project structure
 
 ```text
 document/
-project/{rtl,sdc,par,script/{ai_run}}/
-simulation/{tb/case,script/{ai_run}}/
-linter/script/{ai_run}/
+project/{rtl,sdc,par,script}/
+simulation/{tb/case,script,work}/
+linter/script/
 release/output/
 codex_out/
 ```

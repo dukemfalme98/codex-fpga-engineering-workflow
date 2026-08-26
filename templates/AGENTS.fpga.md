@@ -40,7 +40,9 @@ Verification assets must be independent of current DUT behavior. The author of a
 
 When the user explicitly requests a minimal or narrowly scoped source edit, briefly explain the supported root cause, why the selected location is the narrowest correct owner, what interface/cycle/clock/reset/error behavior remains unchanged, and the smallest useful verification. Then edit within scope without adding an approval pause unless the proposed change alters interface, observable latency/throughput, clock/reset/CDC, error, or safety semantics.
 
-Classify DUT, testbench, model, assertion, script-path, compile/elaboration, tool, vendor-library, and timeout failures before changing RTL. Automatic repair/re-review is limited to three rounds; two consecutive no-progress rounds stop blind editing. Store Codex process files only under project-root `codex_out`.
+Generated-project desktop runtime uses `%~dp0`-anchored BAT plus confirmed vendor-native Tcl/DO/CLI and must not depend on Codex-private PowerShell. Formal build state belongs under `project/par`; formal ModelSim/Questa export, work libraries, logs, and waves belong under `simulation/work`; Codex-created experiments, mutations, indexes, and review packets belong under `codex_out`. When validating a one-click entry point, execute its BAT serially rather than bypassing it. ModelSim/Questa claims require actual compile, load/elaboration, and run evidence; compile failure must prevent load/run.
+
+Classify DUT, testbench, model, assertion, script-path, compile/elaboration, tool, vendor-library, and timeout failures before changing RTL. Automatic repair/re-review is limited to three rounds; two consecutive no-progress rounds stop blind editing.
 
 ## Multi-role ownership and sign-off
 

@@ -30,7 +30,12 @@ $required = @(
     'templates/fault-library.config.example.json',
     'templates/fpga-project/common/README.md.template',
     'templates/fpga-project/common/AGENTS.md',
-    'templates/fpga-project/common/run.bat.template'
+    'templates/fpga-project/common/build-run.bat.template',
+    'templates/fpga-project/common/simulation-run.bat.template',
+    'templates/fpga-project/common/lint-run.bat.template',
+    'templates/fpga-project/common/setting.bat.template',
+    'templates/fpga-project/common/vendor-build.bat.template',
+    'templates/fpga-project/common/vendor-sim.bat.template'
 )
 foreach ($rel in $required) {
     $path = Join-Path $root ($rel -replace '/', [IO.Path]::DirectorySeparatorChar)
@@ -67,6 +72,7 @@ if ($skillText -notmatch 'only `fpga_engineer` writes product') { Add-CheckError
 if ($skillText -notmatch 'at most three automatic repair/re-review rounds') { Add-CheckError 'Three-round repair stop is missing from skill.' }
 if ($skillText -notmatch 'two consecutive no-progress rounds') { Add-CheckError 'Two-no-progress stop is missing from skill.' }
 if ($skillText -notmatch 'codex_out') { Add-CheckError 'codex_out isolation rule is missing from skill.' }
+if ($skillText -notmatch 'project/par' -or $skillText -notmatch 'simulation/work') { Add-CheckError 'Formal native output directories are missing from skill.' }
 if ($skillText -match 'out/codex') { Add-CheckError 'Deprecated out/codex path remains in skill.' }
 
 $schemaFiles = Get-ChildItem -LiteralPath (Join-Path $root 'skills\run-fpga-workflow\references\schemas') -File -Filter '*.schema.json'
@@ -82,16 +88,20 @@ foreach ($target in $parseTargets) {
     foreach ($parseError in $parseErrors) { Add-CheckError "PowerShell parse error in $($target.FullName): $($parseError.Message)" }
 }
 
-$batchTemplate = Get-Content -LiteralPath (Join-Path $root 'templates\fpga-project\common\run.bat.template') -Raw
+$batchTemplate = Get-Content -LiteralPath (Join-Path $root 'templates\fpga-project\common\build-run.bat.template') -Raw
+$simulationBatchTemplate = Get-Content -LiteralPath (Join-Path $root 'templates\fpga-project\common\simulation-run.bat.template') -Raw
 if ($batchTemplate -notmatch [regex]::Escape('%~dp0')) { Add-CheckError 'One-click batch template is not anchored with %~dp0.' }
-if ($batchTemplate -notmatch [regex]::Escape('%SCRIPT_DIR%ai_run\run.ps1')) { Add-CheckError 'One-click batch template does not isolate PowerShell helpers under script/ai_run.' }
+if ($simulationBatchTemplate -notmatch [regex]::Escape('%~dp0')) { Add-CheckError 'Simulation batch template is not anchored with %~dp0.' }
+if ($batchTemplate -match '(?i)pwsh|powershell|\.ps1|\.psd1' -or $simulationBatchTemplate -match '(?i)pwsh|powershell|\.ps1|\.psd1') { Add-CheckError 'Generated user runtime still depends on PowerShell.' }
+if ($batchTemplate -notmatch 'vendor-build\.bat' -or $simulationBatchTemplate -notmatch 'vendor-sim\.bat') { Add-CheckError 'Native vendor BAT adapters are missing from one-click templates.' }
 $scaffoldText = Get-Content -LiteralPath (Join-Path $root 'scripts\new-fpga-project.ps1') -Raw
 foreach ($canonical in @('project/rtl','project/par','project/script','simulation/script','linter/script','release/output')) {
     if ($scaffoldText -notmatch [regex]::Escape($canonical)) { Add-CheckError "Canonical scaffold path is missing: $canonical" }
 }
 if ($scaffoldText -match '(?i)(project2|par2|script2)') { Add-CheckError 'Generated scaffold contains a numbered standard directory.' }
-foreach ($helperPath in @('project\script\ai_run\run.ps1','simulation\script\ai_run\run.ps1','linter\script\ai_run\run.ps1')) {
-    if ($scaffoldText -notmatch [regex]::Escape($helperPath)) { Add-CheckError "Scaffold does not place helper under ai_run: $helperPath" }
+if ($scaffoldText -match [regex]::Escape('script\ai_run')) { Add-CheckError 'Generated user runtime still creates script/ai_run.' }
+foreach ($nativePath in @('project\script\setting.bat','project\script\vendor-build.bat','simulation\script\vendor-sim.bat')) {
+    if ($scaffoldText -notmatch [regex]::Escape($nativePath)) { Add-CheckError "Scaffold is missing native runtime file: $nativePath" }
 }
 $temporal = Get-Content -LiteralPath (Join-Path $root '.codex\agents\fpga_temporal_evidence_reviewer.toml') -Raw
 foreach ($token in @('STATIC_CYCLE','SIMULATION_EVIDENCE','COMBINED','SHADOW','NEEDS_PARTITION')) { if ($temporal -notmatch $token) { Add-CheckError "Temporal reviewer is missing $token." } }
@@ -126,4 +136,4 @@ if ($errors.Count -gt 0) {
     $errors | ForEach-Object { Write-Host "ERROR: $_" -ForegroundColor Red }
     throw "Package validation failed with $($errors.Count) error(s)."
 }
-Write-Host "Package validation passed for version $expectedVersion`: 13 agents, 10 strict read-only roles, workflow schemas, role boundaries, plugin/skill references, PowerShell parse, UTF-8, English-only public text, and public-content scans."
+Write-Host "Package validation passed for version $expectedVersion`: 13 agents, 10 strict read-only roles, workflow schemas, native BAT runtime templates, package PowerShell parse, UTF-8, English-only public text, and public-content scans."

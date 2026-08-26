@@ -1,5 +1,4 @@
 codex_out/
-project/script/toolchain.local.psd1
 simulation/work/
 simulation/waves/
 linter/report_lint/
@@ -9,4 +8,3 @@ linter/report_lint/
 .Xil/
 *.runs/
 *.cache/
-

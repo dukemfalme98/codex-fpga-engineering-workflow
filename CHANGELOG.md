@@ -2,6 +2,21 @@
 
 All notable changes follow Keep a Changelog. Versions follow Semantic Versioning.
 
+## [0.3.2] - 2026-08-27
+
+### Changed
+
+- Replaced generated-project PowerShell runtime wrappers with pure `%~dp0`-anchored BAT entry points and deliberately fail-closed native adapter placeholders.
+- Separated formal vendor build state in `project/par` and formal ModelSim/Questa state in `simulation/work` from Codex-only diagnostics under `codex_out`.
+- Added GUI-by-default and batch simulation semantics, plus explicit real-simulator compile/load/run evidence requirements.
+- Documented the Windows Vivado/ModelSim export edge case where `export_simulation` emits `.sh + compile.do`, including parent-library creation, local `modelsim.ini` correction, nonzero compile exits, and no load after compile failure.
+- Updated the architect, implementation, verification, vendor-platform, and final-review roles to enforce the native desktop entrypoint contract without applying Xilinx-specific commands to unverified Pango or Anlogic tools.
+
+### Validation
+
+- Exercised a BAT-driven Vivado 2020.2 synthesis checkpoint and a BAT-driven ModelSim SE-64 2020.4 compile/load/2 us diagnostic run on an isolated non-shipped fixture.
+- Kept remaining DUT/IP/constraint/timing warnings outside the script repair scope and made no product-RTL acceptance claim.
+
 ## [0.3.1] - 2026-08-26
 
 ### Changed

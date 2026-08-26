@@ -8,3 +8,4 @@ This repository is an installable Codex FPGA workflow, not an FPGA product desig
 - Use minimal diffs. Do not edit generated EDA databases or add vendor-generated IP output.
 - Run `scripts/validate-package.ps1` before submitting a change.
 - Documentation and examples must mark unexecuted checks as `NOT RUN` or `UNVERIFIED`.
+- Keep generated-project desktop runtime independent of Codex-private PowerShell. Formal native build state belongs in `project/par`, formal ModelSim/Questa state belongs in `simulation/work`, and Codex diagnostic copies belong in `codex_out`.

@@ -8,7 +8,7 @@
 
 [![Package validation](https://github.com/prasetyarobert205-jpg/codex-fpga-engineering-workflow/actions/workflows/validate.yml/badge.svg)](https://github.com/prasetyarobert205-jpg/codex-fpga-engineering-workflow/actions/workflows/validate.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-16a34a.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.3.1-2457c5.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.2-2457c5.svg)](CHANGELOG.md)
 [![PowerShell 7](https://img.shields.io/badge/PowerShell-7%2B-5391FE?logo=powershell&logoColor=white)](docs/en/installation.md)
 [![FPGA / SoC FPGA](https://img.shields.io/badge/FPGA%20%2F%20SoC%20FPGA-engineering-7c3aed.svg)](docs/en/architecture.md)
 
@@ -39,11 +39,11 @@ This workflow makes the engineering boundaries explicit:
 - **Temporal claims follow real clock edges.** High-risk synchronous changes are reviewed from pre-edge state through RHS/NBA behavior to the next sampling edge.
 - **Process stays proportionate.** Diagnostic compile/elaborate/run jobs stay lightweight; full models, scoreboards, canaries, and independent acceptance are required only for claims that depend on them.
 - **Simulation cannot grade itself.** Verification authors build tests; a separate read-only reviewer audits evidence used for functional acceptance.
-- **One click means one deterministic path.** Standard projects refresh source/IP lists, preflight dependencies, invoke one selected vendor adapter, and isolate process files under `codex_out`.
+- **One click means the real native toolflow.** Formal projects use BAT plus confirmed vendor Tcl/DO/CLI, keep build state in `project/par`, keep ModelSim/Questa state in `simulation/work`, and reserve `codex_out` for Codex diagnostics.
 
 ## 60-second quick start
 
-Prerequisite: [PowerShell 7](https://learn.microsoft.com/powershell/) and a Codex environment that supports custom agents and skills.
+Package installation and scaffolding require [PowerShell 7](https://learn.microsoft.com/powershell/) plus a Codex environment that supports custom agents and skills. Generated-project desktop `run.bat` files do not require Codex-bundled PowerShell; they use confirmed native vendor Tcl/DO/CLI adapters.
 
 ```powershell
 git clone https://github.com/prasetyarobert205-jpg/codex-fpga-engineering-workflow.git
@@ -176,13 +176,13 @@ pwsh -NoProfile -File .\scripts\new-fpga-project.ps1 `
   -Vendor XILINX
 ```
 
-The scaffold always generates canonical `project/`, `project/par/`, and `project/script/` directories—never numbered variants such as `project2`, `par2`, or `script2`. Then add the real vendor project file under `project/par`, copy `project/script/toolchain.local.psd1.example` to the ignored `toolchain.local.psd1`, and configure exact installed commands. From then on the user can double-click:
+The scaffold always generates canonical `project/`, `project/par/`, and `project/script/` directories—never numbered variants such as `project2`, `par2`, or `script2`. Add the real vendor project file under `project/par`, confirm the exact device/tool/simulator/library facts, then replace the deliberately fail-closed `vendor-build.bat` and `vendor-sim.bat` placeholders with the validated native recipes. From then on the user can double-click:
 
 - `project/script/run.bat` for compile/build;
-- `simulation/script/run.bat` for the configured case;
+- `simulation/script/run.bat` for the configured GUI, or pass `batch` for automation;
 - `linter/script/run.bat` for lint.
 
-Each wrapper anchors itself with `%~dp0`, locates helpers under `script/ai_run/`, detects the vendor, refreshes deterministic source lists, checks tools/libraries/cases, creates an isolated job under `codex_out`, invokes only the selected adapter, and prints a truthful result. A successful smoke run is `DIAGNOSTIC_ONLY`, not a functional `SIMULATION_PASS`. Dependency-sensitive packages and VHDL require an exported `compile_order.txt`; arbitrary vendor order is never guessed. Xilinx (`.xpr`/`.xci`), Pango (`.pds`/`.idf`), and Anlogic (`.al` plus marked `.ipc`) are supported. Conflicts, other vendors, missing official libraries, or unconfigured commands fail closed as `UNVERIFIED`.
+Each wrapper anchors itself with `%~dp0`, invokes only one confirmed native adapter, preserves the real exit code, and prints a truthful result. Formal vendor build state stays under `project/par`; formal ModelSim/Questa export, work libraries, logs, and waves stay under `simulation/work`; Codex-created experiments remain under `codex_out`. A successful smoke run is `DIAGNOSTIC_ONLY`, not a functional `SIMULATION_PASS`. Dependency-sensitive packages and VHDL require an exported `compile_order.txt`; arbitrary vendor order is never guessed. Xilinx (`.xpr`/`.xci`), Pango (`.pds`/`.idf`), and Anlogic (`.al` plus marked `.ipc`) are supported. Conflicts, other vendors, missing official libraries, or unconfigured commands fail closed as `UNVERIFIED`.
 
 The generated standard structure is intentionally small:
 
@@ -197,17 +197,18 @@ The generated standard structure is intentionally small:
 |   |-- ip/                  optional
 |   |-- sdc/
 |   |-- par/
-|   `-- script/              run.bat, settings/lists, ai_run/ helpers
+|   `-- script/              run.bat, setting.bat, lists, native adapter
 |-- simulation/
 |   |-- tb/case/
-|   `-- script/              run.bat, cases/lists, ai_run/ helpers
+|   |-- work/                generated formal simulator state
+|   `-- script/              run.bat, cases/lists, native DO/Tcl adapter
 |-- linter/
 |   |-- lint_bb/             optional
-|   `-- script/              run.bat, lint_list.txt, ai_run/ helpers
+|   `-- script/              run.bat, lint_list.txt
 |-- release/
 |   |-- golden/              optional
 |   `-- output/
-`-- codex_out/               ignored, isolated generated process files
+`-- codex_out/               ignored Codex diagnostics and review packets
 ```
 
 See [Formal project layout and one-click behavior](skills/run-fpga-workflow/references/project-layout.md).
@@ -264,7 +265,7 @@ Physical wiring, power-up, download, motion, heat, lasers, relays, high voltage,
 
 ## Current limitations
 
-Version `0.3.1` keeps the 13-role architecture while making governance proportionate, adding diagnostic versus acceptance evidence profiles, documenting conditional formal review, and moving generated PowerShell helpers under clean `script/ai_run/` directories. The shadow role is not a permanent blocking gate. Package validation does not prove every EDA toolflow; real vendor execution remains target-, version-, license-, and project-dependent. The repository contains no FPGA product, vendor installation, board constraints, customer data, or private fault documents and claims no synthesis, timing, CDC/RDC, bitstream, or board result for a user's design.
+Version `0.3.2` keeps the 13-role architecture and replaces generated-project PowerShell runtime wrappers with pure BAT plus fail-closed native adapter placeholders. It separates formal `project/par` and `simulation/work` state from `codex_out` diagnostics, requires actual ModelSim/Questa compile-load-run evidence when that simulator is claimed, and prevents compile failure from falling through into simulation. The shadow role is not a permanent blocking gate. Package validation does not prove every EDA toolflow; real vendor execution remains target-, version-, license-, and project-dependent. The repository contains no FPGA product, vendor installation, board constraints, customer data, or private fault documents and claims no synthesis, timing, CDC/RDC, bitstream, or board result for a user's design.
 
 Custom-agent, skill, and plugin schemas can evolve. Pin a release and re-run the included validation and installation verification after Codex updates. See [COMPATIBILITY.md](COMPATIBILITY.md).
 

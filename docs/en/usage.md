@@ -181,6 +181,6 @@ A complete workflow result should be easy to audit. Expect these sections, with 
 - State which commands are authoritative. The workflow intentionally does not guess vendor commands.
 - For a review-only task, say “do not modify files.” For implementation, explicitly authorize the desired scope.
 - Keep confidential RTL, schematics, logs, credentials, and customer data out of public issues.
-- For a new standard project, use `scripts/new-fpga-project.ps1`, configure one ignored local toolchain file, and then use the three double-clickable `run.bat` entry points. The scaffold always uses canonical `project/`, `project/par/`, and `project/script/`; PowerShell helpers stay under `script/ai_run/`, and process output remains under `codex_out`.
+- For a new standard project, use `scripts/new-fpga-project.ps1`, confirm the target/tool/simulator facts, replace the deliberately fail-closed native adapter placeholders, and then use the three double-clickable `run.bat` entry points. The scaffold always uses canonical `project/`, `project/par/`, and `project/script/`; generated-project runtime is pure BAT plus native Tcl/DO/CLI. Formal build output stays under `project/par`, formal ModelSim/Questa output under `simulation/work`, and Codex diagnostics under `codex_out`.
 
 For claim boundaries and board-action gates, continue to [Safety and evidence](safety-and-evidence.md).

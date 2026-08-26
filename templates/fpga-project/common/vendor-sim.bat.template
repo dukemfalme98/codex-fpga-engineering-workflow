@@ -1,0 +1,7 @@
+@echo off
+setlocal
+echo TOOL_ENV_FAIL: the __VENDOR__ native simulator recipe is not configured.
+echo Confirm the exact simulator and vendor-library recipe, then replace this
+echo file with the validated BAT, Tcl, or DO adapter. Formal output belongs in:
+echo   %~2\simulation\work
+exit /b 1
