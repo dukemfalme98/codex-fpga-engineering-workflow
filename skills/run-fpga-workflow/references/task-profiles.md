@@ -18,7 +18,7 @@ Use CDC/timing and verification pre-review; add vendor/board review for clock pr
 
 Keep product behavior in common RTL. Wrap PLL/clock/I/O/SERDES/delay/RAM/FIFO/DDR/transceiver/boot/debug and target constraints. Select portable or vendor-optimized implementations by target, not scattered conditionals. Each target needs exact device/tool/IP data, an independent build/report row, and equivalence tests.
 
-Automatic scripts support only Xilinx (`.xpr`/`.xci`), Pango (`.pds`/`.idf`), and Anlogic (`.al`/marked `.ipc`). Conflicts and other vendors fail closed. A generated formal project contains exactly one adapter and one `codex_out` output root.
+Automatic scripts support only Xilinx (`.xpr`/`.xci`), Pango (`.pds`/`.idf`), and Anlogic (`.al`/marked `.ipc`). Conflicts and other vendors fail closed. A generated standard project contains exactly one adapter and one `codex_out` output root.
 
 ## Board or high-energy output
 

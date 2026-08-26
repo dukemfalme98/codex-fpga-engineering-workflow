@@ -4,7 +4,9 @@
 
 ## Design goal
 
-The workflow adds engineering control to AI-assisted FPGA development. Its defining model is **parallel read-only expertise, one product-source writer, isolated validation, and independent sign-off**. It is designed to preserve a reviewable diff and an honest chain of evidence—not to maximize agent count or code-generation speed.
+The workflow adds engineering control to AI-assisted FPGA development. Its defining model is **parallel read-only expertise, one product-source writer, isolated validation, and independent sign-off**. It is designed to preserve a reviewable diff and an honest chain of evidence—not to maximize agent count, paperwork, or code-generation speed.
+
+Governance is proportional to the claim. A diagnostic compile/elaborate/run can remain lightweight. Full functional, formal, CDC/RDC, implementation/STA, electrical, or release evidence is required only when the result is used for that acceptance decision.
 
 ## Control plane
 
@@ -17,7 +19,7 @@ The main Codex conversation is the control plane. It does not replace the specia
 5. dispatch only the roles relevant to the task;
 6. expose conflicts between role conclusions and resolve them from evidence, not by vote;
 7. serialize write batches and freeze snapshots for review;
-8. isolate validation jobs and collect exact commands, versions, exit states, warnings, and report paths;
+8. select a diagnostic/smoke or claim-specific acceptance profile, isolate validation jobs, and collect the evidence that profile needs;
 9. keep the final reviewer independent; and
 10. report the achieved evidence level, missing checks, remaining risks, and user-only board actions.
 
@@ -50,7 +52,7 @@ flowchart TD
     M --> N[Evidence-qualified result]
 ```
 
-For an `ANALYZE` task, the write and repair nodes are skipped. For a small `QUICK` task, the coordinator can use the minimum role set while preserving one writer, verification review, and independent final review. `FULL` tasks use all relevant pre-reviews and evidence gates.
+For an `ANALYZE` task, the write and repair nodes are skipped. For a small `QUICK` task, the coordinator uses the minimum relevant role set while preserving one writer and honest review. `FULL` tasks use relevant pre-reviews and only the evidence gates needed by the requested acceptance claims.
 
 ## Safe parallelism
 
@@ -122,7 +124,10 @@ If project evidence conflicts with a remembered pattern, the project evidence wi
 - Missing or unread evidence remains `NOT RUN` or `UNVERIFIED`.
 - Temporal review is bounded by a stable snapshot and impact cone; it returns `NEEDS_PARTITION` instead of silently truncating a large design.
 - Verification authors do not independently accept evidence produced by models/checkers they changed.
+- Diagnostic/smoke completion is never mislabeled as functional `SIMULATION_PASS`.
+- Formal evidence is independently accepted by `fpga_reviewer` only when formal proof is used for an acceptance claim.
 - All Codex-generated process files use project-root `codex_out`.
+- Generated standard directories are canonical: `project/`, `project/par/`, `project/script/`, `simulation/`, `linter/`, `release/`, and `codex_out/`; numbered variants are not generated.
 - Automatic repair stops after three rounds or two consecutive no-progress rounds.
 
 ## Stable artifacts and shadow evidence

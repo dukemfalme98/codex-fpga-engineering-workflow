@@ -23,6 +23,12 @@ The workflow separates engineering evidence by level. “Tested” is not a suff
 
 The evidence chain should preserve identity: source revision/diff, target, parameters, tool and version, exact command, seed where relevant, exit status, significant warnings, and log/report/waveform/counterexample location. A report generated from an older checkpoint cannot validate the latest RTL repair.
 
+## Proportionate evidence profiles
+
+`DIAGNOSTIC_SMOKE` is for source discovery, compile, elaboration, bounded execution, and path/tool diagnosis. It needs enough information to reproduce the command and understand warnings or failure ownership. It does not require an independent reference model, a full scoreboard, or a negative canary, and it cannot establish `SIMULATION_PASS`.
+
+`FUNCTIONAL_ACCEPTANCE` activates the complete simulation-evidence chain because the run is being used to accept DUT behavior. `SPECIALIST_ACCEPTANCE` activates the relevant formal, CDC/RDC, implementation/STA, electrical, or release evidence only when that claim is requested. Evidence that is irrelevant to the scoped claim may remain `NOT RUN` without making a diagnostic task fail.
+
 ## Required claim language
 
 Use precise labels:
@@ -49,6 +55,7 @@ Examples:
 - Every waiver needs a technical reason, exact scope, owner, validity assumptions, and regression method.
 - Do not delete, weaken, skip, or change a failing test to claim success unless the requirement itself was explicitly corrected and reviewed.
 - Check formal assumptions for over-constraint and proofs for vacuity; retain counterexamples and cover evidence.
+- When formal is used for acceptance, have the independent FPGA reviewer check property/harness identity, assumptions, bounds/depth, vacuity, cover reachability, counterexamples, abstractions, tool/version/command, and author independence. Do not require formal work when it is outside the requested claim.
 - Use isolated output directories for parallel EDA jobs. Shared mutable project databases or simulation libraries make evidence non-reproducible.
 - Record significant warnings even when a command exits successfully.
 - Do not use stale DCPs, netlists, reports, bitstreams, or waveforms as proof for a changed source tree.

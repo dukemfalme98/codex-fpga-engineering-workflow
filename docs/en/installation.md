@@ -130,9 +130,9 @@ explain which project evidence you would read before reviewing an RTL change.
 Do not modify files.
 ```
 
-File verification is not the same as fresh-session discovery. Version 0.3.0 still labels fresh-session end-to-end discovery **UNVERIFIED** until exercised in a clean target environment.
+File verification is not the same as fresh-session discovery. Version 0.3.1 still labels fresh-session end-to-end discovery **UNVERIFIED** until exercised in a clean target environment.
 
-## Create a formal FPGA project
+## Create a standard FPGA project
 
 The package can create a clean local project scaffold without installing an EDA tool:
 
@@ -144,7 +144,7 @@ pwsh -NoProfile -File .\scripts\new-fpga-project.ps1 `
   -Vendor XILINX
 ```
 
-Use `PANGO` or `ANLOGIC` for those targets. The scaffold emits only one vendor adapter. Add exactly one matching project file under `project/par`, configure the ignored `project/script/toolchain.local.psd1`, then double-click the build, simulation, or lint `run.bat`. Each wrapper refreshes canonical file lists, performs preflight, and writes process evidence only to `codex_out`.
+Use `PANGO` or `ANLOGIC` for those targets. The scaffold emits only one vendor adapter and always uses canonical `project/`, `project/par/`, `project/script/`, `simulation/`, `linter/`, `release/`, and `codex_out/` directories. It never generates `project2`, `par2`, `script2`, or other numbered standard names. Add exactly one matching project file under `project/par`, configure the ignored `project/script/toolchain.local.psd1`, then double-click the build, simulation, or lint `run.bat`. Visible script roots stay clean; PowerShell helpers are isolated under `script/ai_run/`. Each wrapper refreshes canonical file lists, performs preflight, and writes process evidence only to `codex_out`.
 
 ## Upgrade
 

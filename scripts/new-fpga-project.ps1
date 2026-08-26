@@ -55,8 +55,9 @@ function Expand-Template([string]$Source, [string]$Target) {
 if (-not $PSCmdlet.ShouldProcess($destinationFull, "Create $Vendor FPGA project scaffold")) { return }
 New-Item -ItemType Directory -Path $destinationFull -Force | Out-Null
 $directories = @(
-    'document', 'project/rtl', 'project/sdc', 'project/par', 'project/script',
-    'simulation/tb/case', 'simulation/script', 'linter/script', 'release/output'
+    'document', 'project/rtl', 'project/sdc', 'project/par', 'project/script', 'project/script/ai_run',
+    'simulation/tb/case', 'simulation/script', 'simulation/script/ai_run',
+    'linter/script', 'linter/script/ai_run', 'release/output'
 )
 if ($WithIp) { $directories += @('project/ip/synth','project/ip/sim') }
 if ($WithLintBlackBox) { $directories += 'linter/lint_bb' }
@@ -72,16 +73,16 @@ Expand-Template (Join-Path $templateRoot 'common\toolchain.local.psd1.example') 
 foreach ($scriptDir in @('project\script','simulation\script','linter\script')) {
     Expand-Template (Join-Path $templateRoot 'common\run.bat.template') (Join-Path $destinationFull "$scriptDir\run.bat")
 }
-Expand-Template (Join-Path $templateRoot 'common\build-run.ps1.template') (Join-Path $destinationFull 'project\script\run.ps1')
-Expand-Template (Join-Path $templateRoot 'common\simulation-run.ps1.template') (Join-Path $destinationFull 'simulation\script\run.ps1')
-Expand-Template (Join-Path $templateRoot 'common\lint-run.ps1.template') (Join-Path $destinationFull 'linter\script\run.ps1')
-Expand-Template (Join-Path $templateRoot 'adapters\build-adapter.ps1.template') (Join-Path $destinationFull "project\script\$($vendorSpec.BuildAdapter)")
-Expand-Template (Join-Path $templateRoot 'adapters\simulation-adapter.ps1.template') (Join-Path $destinationFull "simulation\script\$($vendorSpec.SimulationAdapter)")
+Expand-Template (Join-Path $templateRoot 'common\build-run.ps1.template') (Join-Path $destinationFull 'project\script\ai_run\run.ps1')
+Expand-Template (Join-Path $templateRoot 'common\simulation-run.ps1.template') (Join-Path $destinationFull 'simulation\script\ai_run\run.ps1')
+Expand-Template (Join-Path $templateRoot 'common\lint-run.ps1.template') (Join-Path $destinationFull 'linter\script\ai_run\run.ps1')
+Expand-Template (Join-Path $templateRoot 'adapters\build-adapter.ps1.template') (Join-Path $destinationFull "project\script\ai_run\$($vendorSpec.BuildAdapter)")
+Expand-Template (Join-Path $templateRoot 'adapters\simulation-adapter.ps1.template') (Join-Path $destinationFull "simulation\script\ai_run\$($vendorSpec.SimulationAdapter)")
 
-Copy-Item -LiteralPath (Join-Path $packageRoot 'scripts\detect-vendor.ps1') -Destination (Join-Path $destinationFull 'project\script\detect-vendor.ps1')
-Copy-Item -LiteralPath (Join-Path $packageRoot 'scripts\update-filelists.ps1') -Destination (Join-Path $destinationFull 'project\script\update_filelist.ps1')
-Copy-Item -LiteralPath (Join-Path $packageRoot 'scripts\preflight-project.ps1') -Destination (Join-Path $destinationFull 'project\script\preflight.ps1')
-Copy-Item -LiteralPath (Join-Path $packageRoot 'scripts\prepare-vendor-libraries.ps1') -Destination (Join-Path $destinationFull 'project\script\prepare_vendor_libraries.ps1')
+Copy-Item -LiteralPath (Join-Path $packageRoot 'scripts\detect-vendor.ps1') -Destination (Join-Path $destinationFull 'project\script\ai_run\detect-vendor.ps1')
+Copy-Item -LiteralPath (Join-Path $packageRoot 'scripts\update-filelists.ps1') -Destination (Join-Path $destinationFull 'project\script\ai_run\update_filelist.ps1')
+Copy-Item -LiteralPath (Join-Path $packageRoot 'scripts\preflight-project.ps1') -Destination (Join-Path $destinationFull 'project\script\ai_run\preflight.ps1')
+Copy-Item -LiteralPath (Join-Path $packageRoot 'scripts\prepare-vendor-libraries.ps1') -Destination (Join-Path $destinationFull 'project\script\ai_run\prepare_vendor_libraries.ps1')
 
 foreach ($relative in @('project\script\src_list.txt','project\script\ip_list.txt','project\script\include_dirs.txt','project\script\defines.txt','project\script\compile_order.txt','simulation\script\product_list.txt','simulation\script\src_list.txt','simulation\script\model_list.txt','simulation\script\ip_list.txt','simulation\script\include_dirs.txt','simulation\script\defines.txt','simulation\script\compile_order.txt','linter\script\lint_list.txt')) {
     [IO.File]::WriteAllText((Join-Path $destinationFull $relative), '', [Text.UTF8Encoding]::new($false))

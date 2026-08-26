@@ -24,9 +24,11 @@ Use this table:
 
 Track pipeline fill, steady state, bubbles, stall, resume, flush, drain, first/last transaction, FIFO simultaneous push/pop, RAM read latency/read-during-write, reset release, timeout, abort, and recovery.
 
-## Simulation acceptance
+## Diagnostic smoke versus simulation acceptance
 
-A simulation pass requires the exact snapshot, compile/elaboration/run exits, test discovery and execution, enabled assertions, a drained scoreboard, cycle-indexed expected/actual comparisons, reviewed model provenance, and a negative canary for every critical checker. A clean console, `$stop`, or visual waveform alone is `INCONCLUSIVE`.
+A diagnostic or smoke run answers a limited question such as “did these sources compile and elaborate?” or “did the bounded run start and finish?” Record the exact command, tool/version when available, phase exits, important warnings, and output paths. It does not require an independent reference model, a full scoreboard, or a negative canary. Label it `DIAGNOSTIC_ONLY` or `INCONCLUSIVE`; never relabel it `SIMULATION_PASS`.
+
+When simulation is used for functional acceptance, a simulation pass requires the exact snapshot, compile/elaboration/run exits, test discovery and execution, enabled assertions, a drained scoreboard, cycle-indexed expected/actual comparisons, reviewed model provenance, and a negative canary for every critical acceptance checker. A clean console, `$stop`, or visual waveform alone is `INCONCLUSIVE` for functional acceptance.
 
 Validate the machine-readable record with `scripts/validate-simulation-evidence.ps1`; `SIMULATION_PASS` is rejected for zero tests, stale snapshots, non-zero phase exits, an undrained scoreboard, empty comparisons, missing or undetected canaries, or an empty proof packet.
 

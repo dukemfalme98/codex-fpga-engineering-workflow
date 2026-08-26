@@ -3,8 +3,9 @@ param([ValidateSet('compile','build','clean')][string]$Action)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
-$settings = Import-PowerShellDataFile -LiteralPath (Join-Path $PSScriptRoot 'setting.psd1')
+$scriptRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..'))
+$settings = Import-PowerShellDataFile -LiteralPath (Join-Path $scriptRoot 'setting.psd1')
 if ([string]::IsNullOrWhiteSpace($Action)) { $Action = [string]$settings.DefaultBuildAction }
 if ($Action -eq 'clean') {
     $outRoot = [IO.Path]::GetFullPath((Join-Path $projectRoot 'codex_out'))
@@ -24,6 +25,8 @@ if ($Action -eq 'clean') {
 $runId = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssfffZ') + '-' + [Guid]::NewGuid().ToString('N').Substring(0,8)
 $jobRoot = Join-Path $projectRoot "codex_out\$runId\build"
 New-Item -ItemType Directory -Path $jobRoot -Force | Out-Null
+Write-Host "[RUNNING] Build action=$Action"
+Write-Host "[OUTPUT] $jobRoot"
 
 $detection = & (Join-Path $PSScriptRoot 'detect-vendor.ps1') -ProjectRoot $projectRoot -OutputPath (Join-Path $jobRoot 'vendor-detection.json')
 if ($detection.status -ne 'DETECTED' -or $detection.vendor -ne $settings.Vendor) {

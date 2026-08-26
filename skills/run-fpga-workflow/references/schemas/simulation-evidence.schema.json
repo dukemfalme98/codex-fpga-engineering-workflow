@@ -3,11 +3,12 @@
   "$id": "simulation-evidence.schema.json",
   "title": "FPGA simulation evidence",
   "type": "object",
-  "required": ["schema_version", "run_id", "snapshot_id", "classification", "compile_exit_code", "elaboration_exit_code", "run_exit_code", "tests_discovered", "tests_executed", "scoreboard_drained", "comparisons", "negative_canaries", "proof_packet"],
+  "required": ["schema_version", "run_id", "snapshot_id", "evidence_profile", "classification", "compile_exit_code", "elaboration_exit_code", "run_exit_code", "tests_discovered", "tests_executed", "scoreboard_drained", "comparisons", "negative_canaries", "proof_packet"],
   "properties": {
     "schema_version": {"const": "1.0.0"},
     "run_id": {"type": "string", "minLength": 1},
     "snapshot_id": {"type": "string", "minLength": 1},
+    "evidence_profile": {"enum": ["DIAGNOSTIC_SMOKE", "FUNCTIONAL_ACCEPTANCE"]},
     "classification": {"enum": ["DUT_FAIL", "TESTBENCH_FAIL", "REFERENCE_MODEL_FAIL", "ASSERTION_FAIL", "SCRIPT_PATH_FAIL", "COMPILE_ELAB_FAIL", "TOOL_ENV_FAIL", "VENDOR_LIBRARY_FAIL", "TIMEOUT_HANG", "INCONCLUSIVE", "SIMULATION_PASS"]},
     "compile_exit_code": {"type": "integer"},
     "elaboration_exit_code": {"type": "integer"},
@@ -25,6 +26,7 @@
       "if": {"properties": {"classification": {"const": "SIMULATION_PASS"}}},
       "then": {
         "properties": {
+          "evidence_profile": {"const": "FUNCTIONAL_ACCEPTANCE"},
           "compile_exit_code": {"const": 0},
           "elaboration_exit_code": {"const": 0},
           "run_exit_code": {"const": 0},
@@ -35,8 +37,17 @@
           "negative_canaries": {"minItems": 1, "items": {"properties": {"detected": {"const": true}}}},
           "proof_packet": {"minItems": 1}
         }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_profile": {"const": "FUNCTIONAL_ACCEPTANCE"},
+          "classification": {"not": {"const": "SIMULATION_PASS"}}
+        },
+        "required": ["evidence_profile", "classification"]
       },
-      "else": {
+      "then": {
         "required": ["first_failure"],
         "properties": {"first_failure": {"type": "object", "minProperties": 1}}
       }

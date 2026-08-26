@@ -12,12 +12,13 @@ $schemaPath = Join-Path (Split-Path -Parent $PSScriptRoot) 'skills\run-fpga-work
 if (-not (Test-Path -LiteralPath $schemaPath -PathType Leaf)) { throw "Simulation evidence schema not found: $schemaPath" }
 if (-not (Test-Json -Json $raw -SchemaFile $schemaPath -ErrorAction Stop)) { throw 'Simulation evidence does not satisfy the JSON Schema.' }
 $evidence = $raw | ConvertFrom-Json
-$required = @('schema_version','run_id','snapshot_id','classification','compile_exit_code','elaboration_exit_code','run_exit_code','tests_discovered','tests_executed','scoreboard_drained','comparisons','negative_canaries','proof_packet')
+$required = @('schema_version','run_id','snapshot_id','evidence_profile','classification','compile_exit_code','elaboration_exit_code','run_exit_code','tests_discovered','tests_executed','scoreboard_drained','comparisons','negative_canaries','proof_packet')
 $missing = @($required | Where-Object { $evidence.PSObject.Properties.Name -notcontains $_ })
 if ($missing.Count -gt 0) { throw "Missing simulation-evidence fields: $($missing -join ', ')" }
 if (-not [string]::IsNullOrWhiteSpace($ExpectedSnapshotId) -and $evidence.snapshot_id -ne $ExpectedSnapshotId) { throw "Stale snapshot: expected $ExpectedSnapshotId, found $($evidence.snapshot_id)." }
 
 if ($evidence.classification -eq 'SIMULATION_PASS') {
+    if ($evidence.evidence_profile -ne 'FUNCTIONAL_ACCEPTANCE') { throw 'SIMULATION_PASS is valid only for the FUNCTIONAL_ACCEPTANCE profile.' }
     if ([string]::IsNullOrWhiteSpace($ExpectedSnapshotId)) { throw 'SIMULATION_PASS validation requires -ExpectedSnapshotId.' }
     if ($evidence.compile_exit_code -ne 0 -or $evidence.elaboration_exit_code -ne 0 -or $evidence.run_exit_code -ne 0) { throw 'SIMULATION_PASS requires zero compile, elaboration, and run exit codes.' }
     if ($evidence.tests_discovered -lt 1 -or $evidence.tests_executed -lt 1 -or $evidence.tests_executed -gt $evidence.tests_discovered) { throw 'SIMULATION_PASS requires one or more executed tests and executed <= discovered.' }
@@ -38,7 +39,7 @@ if ($evidence.classification -eq 'SIMULATION_PASS') {
             $cursor = if ($cursor -is [IO.FileInfo]) { $cursor.Directory } else { $cursor.Parent }
         }
     }
-} else {
+} elseif ($evidence.evidence_profile -eq 'FUNCTIONAL_ACCEPTANCE') {
     if ($evidence.PSObject.Properties.Name -notcontains 'first_failure' -or $null -eq $evidence.first_failure) { throw 'A non-pass classification requires first_failure evidence.' }
 }
 [pscustomobject]@{ status = 'VALID'; classification = $evidence.classification; snapshot_id = $evidence.snapshot_id }

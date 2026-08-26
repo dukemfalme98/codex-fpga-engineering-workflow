@@ -4,23 +4,25 @@
 
 ![Codex FPGA Engineering Workflow](assets/hero.svg)
 
-### Build FPGA changes with AI—without giving up engineering discipline.
+### Turn AI-assisted RTL work into a reviewable FPGA engineering flow.
 
 [![Package validation](https://github.com/prasetyarobert205-jpg/codex-fpga-engineering-workflow/actions/workflows/validate.yml/badge.svg)](https://github.com/prasetyarobert205-jpg/codex-fpga-engineering-workflow/actions/workflows/validate.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-16a34a.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.3.0-2457c5.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.1-2457c5.svg)](CHANGELOG.md)
 [![PowerShell 7](https://img.shields.io/badge/PowerShell-7%2B-5391FE?logo=powershell&logoColor=white)](docs/en/installation.md)
 [![FPGA / SoC FPGA](https://img.shields.io/badge/FPGA%20%2F%20SoC%20FPGA-engineering-7c3aed.svg)](docs/en/architecture.md)
 
-**Architecture · Cycle-accurate RTL · Independent simulation evidence · CDC/RDC · Timing · Three-vendor toolflows · Sign-off**
+**13 focused roles · One product writer · Cycle-accurate review · One-click project scripts · Honest evidence boundaries**
 
 [Quick start](#60-second-quick-start) · [Architecture](docs/en/architecture.md) · [Roles](docs/en/roles.md) · [Usage](docs/en/usage.md) · [Safety and evidence](docs/en/safety-and-evidence.md)
 
 </div>
 
-Codex FPGA Engineering Workflow is an open-source, installable multi-agent workflow for FPGA and SoC FPGA work. It turns AI assistance into a controlled engineering lifecycle: requirements and project facts first, parallel specialist analysis, one product-source writer, isolated validation, and independent review.
+Codex FPGA Engineering Workflow is an open-source, installable multi-agent workflow for FPGA and SoC FPGA work. It helps teams use Codex for RTL, verification, CDC/RDC, timing, vendor integration, and review while keeping changes small, ownership clear, and claims tied to evidence.
 
-It is intentionally not a promise that a prompt can prove CDC correctness, timing closure, electrical safety, or board readiness. It provides the roles, gates, prompts, and evidence vocabulary needed to make those claims responsibly when the corresponding reports and measurements exist.
+It is deliberately practical: a smoke compile remains a smoke compile, while full evidence gates activate only when a result is used for functional, timing, CDC, formal, or release acceptance. It is not a promise that one prompt can prove CDC correctness, timing closure, electrical safety, or board readiness.
+
+**Use it when you want AI speed without losing the engineering questions that decide whether FPGA code actually works on the intended clock, target, and board.**
 
 ## Why this exists
 
@@ -35,8 +37,9 @@ This workflow makes the engineering boundaries explicit:
 - **Evidence levels remain separate.** Source review, simulation, formal proof, CDC/RDC, synthesis, implementation STA, instrument measurements, and board results are not interchangeable.
 - **Vendor details stay at the platform boundary.** Portable product logic is separated from primitives, IP, pins, clocks, transceivers, constraints, and target wrappers.
 - **Temporal claims follow real clock edges.** High-risk synchronous changes are reviewed from pre-edge state through RHS/NBA behavior to the next sampling edge.
-- **Simulation cannot grade itself.** Verification authors build tests; a separate read-only shadow reviewer audits model independence, checkers, waveforms, and pass conditions.
-- **One click means one deterministic path.** Formal projects refresh source/IP lists, preflight dependencies, invoke one selected vendor adapter, and isolate process files under `codex_out`.
+- **Process stays proportionate.** Diagnostic compile/elaborate/run jobs stay lightweight; full models, scoreboards, canaries, and independent acceptance are required only for claims that depend on them.
+- **Simulation cannot grade itself.** Verification authors build tests; a separate read-only reviewer audits evidence used for functional acceptance.
+- **One click means one deterministic path.** Standard projects refresh source/IP lists, preflight dependencies, invoke one selected vendor adapter, and isolate process files under `codex_out`.
 
 ## 60-second quick start
 
@@ -126,7 +129,7 @@ Ten role configurations explicitly set `sandbox_mode = "read-only"`. The other t
 |---|---|---|---|
 | `ANALYZE` | Diagnosis, architecture, source/report review, release audit | None | Read-only evidence baseline and relevant specialist review |
 | `QUICK` | Explicitly authorized, small, interface-preserving, single-clock, low-risk fixes | One minimal product batch | Existing tests, verification review, independent final review |
-| `FULL` | New RTL, CDC/RDC, regmap/IRQ/DMA, constraints, vendor IP, external timing, possible data loss, energy control, or significant refactoring | Controlled sequential batches | Architecture contract, relevant pre-reviews, isolated validation, specialist re-review, independent sign-off |
+| `FULL` | New RTL, CDC/RDC, regmap/IRQ/DMA, constraints, vendor IP, external timing, possible data loss, energy control, or significant refactoring | Controlled sequential batches | Architecture contract, relevant pre-reviews, isolated validation, claim-specific acceptance evidence, independent sign-off |
 
 Risk never expands write authorization. A crossing, published interface, external timing change, vendor IP/constraint change, or safety-sensitive output must not be downgraded to `QUICK` for convenience.
 
@@ -137,7 +140,7 @@ Risk never expands write authorization. A crossing, published interface, externa
 - Review a register map, IRQ clear sequence, DMA ownership protocol, or firmware compatibility change.
 - Compare portable RTL with AMD/Xilinx, Pango, or Anlogic target wrappers without duplicating business logic.
 - Audit a false simulation pass using cycle-indexed scoreboards, Model Cards, negative canaries, and selected proof windows.
-- Scaffold a clean formal project whose build, simulation, and lint entry points are all double-clickable `run.bat` files.
+- Scaffold a clean standard project whose build, simulation, and lint entry points are all double-clickable `run.bat` files.
 - Audit combinational depth, cascaded priority/MUX logic, fanout, and critical paths using actual synthesis/implementation evidence.
 - Build a requirement-to-design-to-test trace for a risky refactor.
 - Prepare a safe board-validation procedure while keeping physical actions under qualified human control.
@@ -161,7 +164,7 @@ pwsh -NoProfile -File .\scripts\install.ps1 -Scope Project `
 
 Full instructions: [install, verify, upgrade, and uninstall](docs/en/installation.md).
 
-## One-click formal project scaffold
+## One-click standard project scaffold
 
 Create a local project skeleton for exactly one supported vendor:
 
@@ -173,15 +176,15 @@ pwsh -NoProfile -File .\scripts\new-fpga-project.ps1 `
   -Vendor XILINX
 ```
 
-Then add the real vendor project file under `project/par`, copy `project/script/toolchain.local.psd1.example` to the ignored `toolchain.local.psd1`, and configure exact installed commands. From then on the user can double-click:
+The scaffold always generates canonical `project/`, `project/par/`, and `project/script/` directories—never numbered variants such as `project2`, `par2`, or `script2`. Then add the real vendor project file under `project/par`, copy `project/script/toolchain.local.psd1.example` to the ignored `toolchain.local.psd1`, and configure exact installed commands. From then on the user can double-click:
 
 - `project/script/run.bat` for compile/build;
 - `simulation/script/run.bat` for the configured case;
 - `linter/script/run.bat` for lint.
 
-Each wrapper anchors itself with `%~dp0`, detects the vendor, refreshes separate deterministic product/IP/testbench/model/include lists, checks tools/libraries/cases, creates an isolated job under `codex_out`, invokes only the selected adapter, and prints a truthful result. Dependency-sensitive packages and VHDL require an exported `compile_order.txt`; arbitrary vendor order is never guessed. Xilinx (`.xpr`/`.xci`), Pango (`.pds`/`.idf`), and Anlogic (`.al` plus marked `.ipc`) are supported. Conflicts, other vendors, missing official libraries, or unconfigured commands fail closed as `UNVERIFIED`.
+Each wrapper anchors itself with `%~dp0`, locates helpers under `script/ai_run/`, detects the vendor, refreshes deterministic source lists, checks tools/libraries/cases, creates an isolated job under `codex_out`, invokes only the selected adapter, and prints a truthful result. A successful smoke run is `DIAGNOSTIC_ONLY`, not a functional `SIMULATION_PASS`. Dependency-sensitive packages and VHDL require an exported `compile_order.txt`; arbitrary vendor order is never guessed. Xilinx (`.xpr`/`.xci`), Pango (`.pds`/`.idf`), and Anlogic (`.al` plus marked `.ipc`) are supported. Conflicts, other vendors, missing official libraries, or unconfigured commands fail closed as `UNVERIFIED`.
 
-The generated formal structure is intentionally small:
+The generated standard structure is intentionally small:
 
 ```text
 <project-root>/
@@ -194,13 +197,13 @@ The generated formal structure is intentionally small:
 |   |-- ip/                  optional
 |   |-- sdc/
 |   |-- par/
-|   `-- script/              run.bat, one adapter, canonical src_list.txt
+|   `-- script/              run.bat, settings/lists, ai_run/ helpers
 |-- simulation/
 |   |-- tb/case/
-|   `-- script/              run.bat, one adapter, canonical src_list.txt
+|   `-- script/              run.bat, cases/lists, ai_run/ helpers
 |-- linter/
 |   |-- lint_bb/             optional
-|   `-- script/              run.bat and canonical lint_list.txt
+|   `-- script/              run.bat, lint_list.txt, ai_run/ helpers
 |-- release/
 |   |-- golden/              optional
 |   `-- output/
@@ -222,14 +225,21 @@ The workflow can also query an optional private after-sales fault library. It im
 .codex/agents/*.toml                Thirteen role definitions and prompts
 skills/run-fpga-workflow/           Orchestration skill, schemas, and reference policies
 templates/AGENTS.fpga.md             Optional project/user engineering rules
-templates/fpga-project/              Clean formal-project scaffold and one-adapter templates
+templates/fpga-project/              Clean standard-project scaffold and one-adapter templates
 examples/*.prompt.md                Copyable ANALYZE, QUICK, and FULL prompts
 docs/en/                            Architecture, roles, installation, usage, safety
 scripts/                            Install/validate plus scaffold, vendor, file-list, preflight, and private-library helpers
 .github/                            Validation workflow and contribution templates
 ```
 
-## Evidence and safety boundary
+## Evidence profiles and safety boundary
+
+The workflow uses two everyday profiles before the broader evidence ladder:
+
+- **Diagnostic / smoke:** compile, elaborate, start a bounded run, collect warnings, or diagnose paths and tools. Independent models and negative canaries are optional. The result cannot be called `SIMULATION_PASS`.
+- **Acceptance:** activate only the evidence needed for the claim—functional simulation, formal, CDC/RDC, implementation/STA, electrical, or release. Authors cannot independently sign their changed acceptance assets.
+
+The non-negotiable boundaries remain one writer per checkout, no fabricated evidence, correct failure ownership, independent acceptance, and explicit CDC/electrical safety handling.
 
 The workflow uses an evidence ladder rather than a single “tested” label:
 
@@ -254,7 +264,7 @@ Physical wiring, power-up, download, motion, heat, lasers, relays, high voltage,
 
 ## Current limitations
 
-Version `0.3.0` adds a shadow temporal-evidence reviewer, workflow schemas, deterministic three-vendor detection, file-list generation, preflight, a formal project scaffold, one-click wrappers, and an empty private fault-library hook. The shadow role is not yet a permanent blocking gate. Fresh-session Codex discovery and real vendor EDA execution remain **UNVERIFIED** until exercised in an appropriately licensed local environment. The repository contains no FPGA product, vendor installation, board constraints, customer data, or private fault documents and claims no synthesis, timing, CDC/RDC, bitstream, or board result for a user's design.
+Version `0.3.1` keeps the 13-role architecture while making governance proportionate, adding diagnostic versus acceptance evidence profiles, documenting conditional formal review, and moving generated PowerShell helpers under clean `script/ai_run/` directories. The shadow role is not a permanent blocking gate. Package validation does not prove every EDA toolflow; real vendor execution remains target-, version-, license-, and project-dependent. The repository contains no FPGA product, vendor installation, board constraints, customer data, or private fault documents and claims no synthesis, timing, CDC/RDC, bitstream, or board result for a user's design.
 
 Custom-agent, skill, and plugin schemas can evolve. Pin a release and re-run the included validation and installation verification after Codex updates. See [COMPATIBILITY.md](COMPATIBILITY.md).
 

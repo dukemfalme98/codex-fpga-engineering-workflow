@@ -3,14 +3,18 @@ param([ValidateSet('all','verilator','svlint')][string]$Action = 'all')
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+$scriptRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..'))
 $projectScript = Join-Path $projectRoot 'project\script'
+$projectHelpers = Join-Path $projectScript 'ai_run'
 $settings = Import-PowerShellDataFile -LiteralPath (Join-Path $projectScript 'setting.psd1')
 $runId = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssfffZ') + '-' + [Guid]::NewGuid().ToString('N').Substring(0,8)
 $jobRoot = Join-Path $projectRoot "codex_out\$runId\lint"
 New-Item -ItemType Directory -Path $jobRoot -Force | Out-Null
-& (Join-Path $projectScript 'update_filelist.ps1') -ProjectRoot $projectRoot -Vendor $settings.Vendor | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $jobRoot 'filelist-result.json') -Encoding utf8NoBOM
-$preflight = & (Join-Path $projectScript 'preflight.ps1') -ProjectRoot $projectRoot -Purpose Lint -ExpectedVendor $settings.Vendor
+Write-Host "[RUNNING] Lint action=$Action"
+Write-Host "[OUTPUT] $jobRoot"
+& (Join-Path $projectHelpers 'update_filelist.ps1') -ProjectRoot $projectRoot -Vendor $settings.Vendor | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $jobRoot 'filelist-result.json') -Encoding utf8NoBOM
+$preflight = & (Join-Path $projectHelpers 'preflight.ps1') -ProjectRoot $projectRoot -Purpose Lint -ExpectedVendor $settings.Vendor
 $preflight | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $jobRoot 'preflight.json') -Encoding utf8NoBOM
 if ($preflight.status -ne 'PASS') {
     Write-Host "[UNVERIFIED] Lint preflight did not pass." -ForegroundColor Yellow
@@ -18,7 +22,7 @@ if ($preflight.status -ne 'PASS') {
     exit 3
 }
 $local = Import-PowerShellDataFile -LiteralPath (Join-Path $projectScript 'toolchain.local.psd1')
-$arguments = @($local.LintArguments | ForEach-Object { ([string]$_).Replace('{lintList}', (Join-Path $PSScriptRoot 'lint_list.txt')).Replace('{jobRoot}', $jobRoot).Replace('{action}', $Action) })
+$arguments = @($local.LintArguments | ForEach-Object { ([string]$_).Replace('{lintList}', (Join-Path $scriptRoot 'lint_list.txt')).Replace('{jobRoot}', $jobRoot).Replace('{action}', $Action) })
 [IO.File]::WriteAllText((Join-Path $jobRoot 'command.txt'), (($local.LintCommand + ' ' + ($arguments -join ' ')) + [Environment]::NewLine), [Text.UTF8Encoding]::new($false))
 & $local.LintCommand @arguments 2>&1 | Tee-Object -FilePath (Join-Path $jobRoot 'run.log')
 $code = $LASTEXITCODE

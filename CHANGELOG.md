@@ -2,6 +2,16 @@
 
 All notable changes follow Keep a Changelog. Versions follow Semantic Versioning.
 
+## [0.3.1] - 2026-08-26
+
+### Changed
+
+- Made governance proportionate with separate diagnostic/smoke and claim-specific acceptance profiles while preserving one-writer, no-self-sign, evidence-integrity, failure-ownership, CDC, and electrical-safety gates.
+- Added brief pre-edit reasoning for user-requested minimal source changes without introducing redundant approval pauses.
+- Assigned formal-evidence acceptance to the existing independent FPGA reviewer only when formal proof is part of the requested acceptance claim.
+- Standardized generated projects on `project/`, `project/par/`, and `project/script/` with no numbered variants, and moved optional PowerShell helpers under clean `script/ai_run/` directories.
+- Improved the English landing page and guides with a clearer value proposition, one-click project experience, evidence profiles, honest limitations, and adoption guidance.
+
 ## [0.3.0] - 2026-08-26
 
 ### Added

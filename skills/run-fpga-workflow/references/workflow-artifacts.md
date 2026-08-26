@@ -1,6 +1,6 @@
 # Workflow artifacts
 
-These artifacts bind claims to one project snapshot. Store them under `codex_out/<run-id>/` and validate them against the JSON Schemas in `references/schemas/`. Omitted facts are `UNKNOWN`; an empty field does not silently become an assumption.
+These artifacts bind acceptance claims to one project snapshot. Store the applicable subset under `codex_out/<run-id>/` and validate structured records against the JSON Schemas in `references/schemas/`. Omitted facts are `UNKNOWN`; an empty field does not silently become an assumption. A diagnostic smoke job normally needs only a concise command/result record; it does not need the complete artifact set unless its result is promoted into an acceptance claim.
 
 ## Artifact set
 
@@ -12,7 +12,7 @@ These artifacts bind claims to one project snapshot. Store them under `codex_out
 | `cycle-contract.json` | Architect | Accepted/completed edges, latency, throughput, alignment, and recovery |
 | `verification-plan.json` | Verification engineer | Requirement -> Test -> Checker -> Cover and model independence |
 | `run-manifest.json` | Runner | Command, cwd, tool/version, exits, seed, libraries, and evidence paths |
-| `simulation-evidence.json` | Runner + independent evidence reviewer | Cycle comparisons, checker drain, negative canaries, first failure, proof packet |
+| `simulation-evidence.json` | Runner + independent evidence reviewer | Functional-acceptance profile, cycle comparisons, checker drain, negative canaries, first failure, proof packet |
 | `findings-ledger.json` | Coordinator | Stable finding lifecycle across snapshots and repair rounds |
 
 ## Common identity
@@ -33,4 +33,3 @@ Use the schema examples as the starting template:
 ```
 
 Do not create artifacts merely to make a checklist green. Populate them from inspected files, actual commands, and actual reports. Artifact validation proves shape only, not engineering correctness.
-

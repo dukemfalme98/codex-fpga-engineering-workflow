@@ -19,6 +19,16 @@ Invoke the workflow by naming `$run-fpga-workflow` and stating the desired outco
 
 Risk never grants permission to edit. Conversely, an explicit request to fix a high-risk item does not make it a `QUICK` task.
 
+## Choose the evidence profile
+
+| Needed result | Profile | Minimum honest outcome |
+|---|---|---|
+| Find path/tool/source problems; compile; elaborate; start and finish a bounded smoke run | `DIAGNOSTIC_SMOKE` | Exact command, tool/version when available, exit state, important warnings, and output paths; `DIAGNOSTIC_ONLY` or `INCONCLUSIVE` |
+| Accept DUT behavior from simulation | `FUNCTIONAL_ACCEPTANCE` | Snapshot-bound independent checker/model evidence, cycle alignment, drained scoreboard, relevant negative canary, and independent review |
+| Accept a formal, CDC/RDC, implementation/STA, electrical, or release claim | `SPECIALIST_ACCEPTANCE` | Only the evidence family needed by that claim, plus its independent owner/reviewer |
+
+Do not request a full acceptance packet for a simple diagnostic. Do not promote a diagnostic run into `SIMULATION_PASS`.
+
 ## Copyable prompts
 
 ### ANALYZE: CDC failure
@@ -50,6 +60,15 @@ interface-preserving RTL bug fix. Protect the existing diff, make the smallest
 product-source change, preserve latency and protocol behavior, run only confirmed
 project tests, obtain verification review, and use an independent final reviewer.
 Do not refactor unrelated code.
+```
+
+### Diagnostic simulation smoke run
+
+```text
+Use $run-fpga-workflow to run the confirmed compile, elaboration, and bounded
+simulation smoke path. Record the exact tool, command, exit status, warnings,
+and output directory. Keep this DIAGNOSTIC_ONLY: do not require an independent
+reference model or negative canary, and do not call it SIMULATION_PASS.
 ```
 
 ### FULL: asynchronous streaming block
@@ -162,6 +181,6 @@ A complete workflow result should be easy to audit. Expect these sections, with 
 - State which commands are authoritative. The workflow intentionally does not guess vendor commands.
 - For a review-only task, say “do not modify files.” For implementation, explicitly authorize the desired scope.
 - Keep confidential RTL, schematics, logs, credentials, and customer data out of public issues.
-- For a new formal project, use `scripts/new-fpga-project.ps1`, configure one ignored local toolchain file, and then use the three double-clickable `run.bat` entry points. Process output remains under `codex_out`.
+- For a new standard project, use `scripts/new-fpga-project.ps1`, configure one ignored local toolchain file, and then use the three double-clickable `run.bat` entry points. The scaffold always uses canonical `project/`, `project/par/`, and `project/script/`; PowerShell helpers stay under `script/ai_run/`, and process output remains under `codex_out`.
 
 For claim boundaries and board-action gates, continue to [Safety and evidence](safety-and-evidence.md).

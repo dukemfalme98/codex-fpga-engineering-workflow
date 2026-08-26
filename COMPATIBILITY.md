@@ -1,6 +1,6 @@
 # Compatibility
 
-Package version: **0.3.0**
+Package version: **0.3.1**
 
 ## Package format
 
@@ -13,4 +13,4 @@ This release uses Codex plugin discovery through `.codex-plugin/plugin.json`, cu
 - Git: 2.54.0.windows.1
 - Operating system: Windows
 
-Static package validation is included. The helpers support vendor detection for AMD/Xilinx Vivado, Pango PDS, and Anlogic TD; exact EDA commands and official libraries remain local project/tool-version facts. End-to-end discovery and real vendor EDA execution remain **UNVERIFIED** for 0.3.0 until exercised in an appropriately licensed environment. Codex custom-agent and plugin schemas may evolve; pin a release and re-run `scripts/verify-install.ps1` after Codex updates.
+Static package validation is included. The helpers support vendor detection for AMD/Xilinx Vivado, Pango PDS, and Anlogic TD; exact EDA commands and official libraries remain local project/tool-version facts. Package validation exercises structure and script parsing, not every licensed vendor flow. End-to-end discovery and real vendor EDA execution remain target-specific and **UNVERIFIED** for 0.3.1 until exercised in the intended environment. Codex custom-agent and plugin schemas may evolve; pin a release and re-run `scripts/verify-install.ps1` after Codex updates.

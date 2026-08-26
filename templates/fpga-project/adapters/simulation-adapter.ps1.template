@@ -19,8 +19,7 @@ $arguments = @($local.SimulatorArguments | ForEach-Object { ([string]$_).Replace
 [IO.File]::WriteAllText((Join-Path $JobRoot 'tool-version.txt'), (([string]$local.SimulatorVersion) + [Environment]::NewLine), [Text.UTF8Encoding]::new($false))
 & $local.SimulatorCommand @arguments 2>&1 | Tee-Object -FilePath (Join-Path $JobRoot 'run.log')
 $code = $LASTEXITCODE
-$result = [ordered]@{ status = if ($code -eq 0) {'UNVERIFIED'} else {'FAIL'}; classification = if ($code -eq 0) {'INCONCLUSIVE'} else {'COMPILE_ELAB_FAIL'}; vendor = $vendor; case = $Case; seed = $Seed; exit_code = $code; note = 'A zero exit code is not SIMULATION_PASS until independent checker and evidence review complete.' }
+$result = [ordered]@{ evidence_profile = 'DIAGNOSTIC_SMOKE'; status = if ($code -eq 0) {'DIAGNOSTIC_ONLY'} else {'FAIL'}; classification = 'INCONCLUSIVE'; vendor = $vendor; case = $Case; mode = $Mode; seed = $Seed; exit_code = $code; note = if ($code -eq 0) {'Compile/elaborate/run command completed. Functional acceptance was not evaluated, so this is not SIMULATION_PASS.'} else {'The generic adapter cannot safely distinguish compile, elaboration, runtime, assertion, model, license, or environment failure from the process exit alone. Inspect run.log and route the failure to its evidence-backed owner.'} }
 $result | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $JobRoot 'result.json') -Encoding utf8NoBOM
-Write-Host "[$($result.status)] $vendor simulation exit code $code; independent evidence review is still required."
-if ($code -eq 0) { exit 3 }
+Write-Host "[$($result.status)] $vendor simulation exit code $code. Functional acceptance remains UNVERIFIED."
 exit $code

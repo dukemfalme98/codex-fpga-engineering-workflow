@@ -84,6 +84,15 @@ foreach ($target in $parseTargets) {
 
 $batchTemplate = Get-Content -LiteralPath (Join-Path $root 'templates\fpga-project\common\run.bat.template') -Raw
 if ($batchTemplate -notmatch [regex]::Escape('%~dp0')) { Add-CheckError 'One-click batch template is not anchored with %~dp0.' }
+if ($batchTemplate -notmatch [regex]::Escape('%SCRIPT_DIR%ai_run\run.ps1')) { Add-CheckError 'One-click batch template does not isolate PowerShell helpers under script/ai_run.' }
+$scaffoldText = Get-Content -LiteralPath (Join-Path $root 'scripts\new-fpga-project.ps1') -Raw
+foreach ($canonical in @('project/rtl','project/par','project/script','simulation/script','linter/script','release/output')) {
+    if ($scaffoldText -notmatch [regex]::Escape($canonical)) { Add-CheckError "Canonical scaffold path is missing: $canonical" }
+}
+if ($scaffoldText -match '(?i)(project2|par2|script2)') { Add-CheckError 'Generated scaffold contains a numbered standard directory.' }
+foreach ($helperPath in @('project\script\ai_run\run.ps1','simulation\script\ai_run\run.ps1','linter\script\ai_run\run.ps1')) {
+    if ($scaffoldText -notmatch [regex]::Escape($helperPath)) { Add-CheckError "Scaffold does not place helper under ai_run: $helperPath" }
+}
 $temporal = Get-Content -LiteralPath (Join-Path $root '.codex\agents\fpga_temporal_evidence_reviewer.toml') -Raw
 foreach ($token in @('STATIC_CYCLE','SIMULATION_EVIDENCE','COMBINED','SHADOW','NEEDS_PARTITION')) { if ($temporal -notmatch $token) { Add-CheckError "Temporal reviewer is missing $token." } }
 $verification = Get-Content -LiteralPath (Join-Path $root '.codex\agents\verification_engineer.toml') -Raw

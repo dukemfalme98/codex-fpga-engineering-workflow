@@ -1,12 +1,14 @@
 # __PROJECT_NAME__
 
-Formal FPGA project scaffold for **__VENDOR__**. Project-specific device, clocks, resets, interfaces, constraints, and acceptance evidence must be recorded in this repository before implementation or sign-off.
+Standard FPGA project scaffold for **__VENDOR__**. Project-specific device, clocks, resets, interfaces, constraints, and acceptance evidence must be recorded in this repository before implementation or sign-off.
 
 ## One-click entry points
 
 - `project/script/run.bat`: refreshes file lists, runs preflight, then invokes the selected build adapter.
 - `simulation/script/run.bat`: refreshes file lists, runs preflight, then invokes the selected simulation adapter.
 - `linter/script/run.bat`: refreshes file lists, runs preflight, then invokes the configured lint tool.
+
+The visible `script/` directories contain only the user-facing batch entry point, settings, canonical lists, and optional Tcl/do files. PowerShell helpers are isolated under each `script/ai_run/`; users do not need to invoke them directly.
 
 Copy `project/script/toolchain.local.psd1.example` to the ignored `toolchain.local.psd1`, then set exact installed executable paths and confirmed arguments. A missing tool, vendor library, source, case, or project marker returns `UNVERIFIED`; it is not silently replaced.
 
@@ -16,12 +18,13 @@ Generated process files belong only under `codex_out/`. Release candidates are p
 
 ```text
 document/
-project/{rtl,sdc,par,script}/
-simulation/{tb/case,script}/
-linter/script/
+project/{rtl,sdc,par,script/{ai_run}}/
+simulation/{tb/case,script/{ai_run}}/
+linter/script/{ai_run}/
 release/output/
 codex_out/
 ```
 
 Optional `project/ip`, `linter/lint_bb`, and `release/golden` directories are created only when requested by the scaffold command.
 
+These canonical names are fixed for generated projects. Do not create numbered standard directories such as `project2`, `par2`, or `script2`.

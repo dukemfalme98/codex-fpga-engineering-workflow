@@ -3,29 +3,33 @@ param([string]$Case, [ValidateSet('gui','batch')][string]$Mode = 'batch', [int]$
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+$scriptRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..'))
 $projectScript = Join-Path $projectRoot 'project\script'
+$projectHelpers = Join-Path $projectScript 'ai_run'
 $settings = Import-PowerShellDataFile -LiteralPath (Join-Path $projectScript 'setting.psd1')
 if ([string]::IsNullOrWhiteSpace($Case)) { $Case = [string]$settings.DefaultSimulationCase }
 $runId = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssfffZ') + '-' + [Guid]::NewGuid().ToString('N').Substring(0,8)
 $jobRoot = Join-Path $projectRoot "codex_out\$runId\sim\$Case"
 New-Item -ItemType Directory -Path $jobRoot -Force | Out-Null
+Write-Host "[RUNNING] Simulation case=$Case mode=$Mode seed=$Seed"
+Write-Host "[OUTPUT] $jobRoot"
 
-$detection = & (Join-Path $projectScript 'detect-vendor.ps1') -ProjectRoot $projectRoot -OutputPath (Join-Path $jobRoot 'vendor-detection.json')
+$detection = & (Join-Path $projectHelpers 'detect-vendor.ps1') -ProjectRoot $projectRoot -OutputPath (Join-Path $jobRoot 'vendor-detection.json')
 if ($detection.status -ne 'DETECTED' -or $detection.vendor -ne $settings.Vendor) {
     Write-Host "[UNVERIFIED] $($detection.message)" -ForegroundColor Yellow
     exit 3
 }
-& (Join-Path $projectScript 'update_filelist.ps1') -ProjectRoot $projectRoot -Vendor $settings.Vendor | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $jobRoot 'filelist-result.json') -Encoding utf8NoBOM
-$casesPath = Join-Path $PSScriptRoot 'cases.txt'
+& (Join-Path $projectHelpers 'update_filelist.ps1') -ProjectRoot $projectRoot -Vendor $settings.Vendor | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $jobRoot 'filelist-result.json') -Encoding utf8NoBOM
+$casesPath = Join-Path $scriptRoot 'cases.txt'
 $knownCases = if (Test-Path -LiteralPath $casesPath -PathType Leaf) { @(Get-Content -LiteralPath $casesPath -Encoding UTF8 | ForEach-Object { $_.Trim() } | Where-Object { $_ }) } else { @() }
 $caseFile = Join-Path $projectRoot ("simulation\tb\case\" + $Case)
 $caseAccepted = $Case -in $knownCases -or ($Case.EndsWith('.sim', [StringComparison]::OrdinalIgnoreCase) -and (Test-Path -LiteralPath $caseFile -PathType Leaf))
 if (-not $caseAccepted) { Write-Host "[UNVERIFIED] Simulation case is neither listed in cases.txt nor an existing .sim case file: $Case" -ForegroundColor Yellow; exit 3 }
-$prepared = & (Join-Path $projectScript 'prepare_vendor_libraries.ps1') -ProjectRoot $projectRoot -Vendor $settings.Vendor -JobRoot $jobRoot
+$prepared = & (Join-Path $projectHelpers 'prepare_vendor_libraries.ps1') -ProjectRoot $projectRoot -Vendor $settings.Vendor -JobRoot $jobRoot
 if ($prepared.status -eq 'MISSING_VENDOR_LIBRARY') { Write-Host "[UNVERIFIED] Missing official vendor libraries: $($prepared.missing -join ', ')" -ForegroundColor Yellow; exit 3 }
 $preparedNames = @($prepared.libraries | ForEach-Object { $_.name })
-$preflight = & (Join-Path $projectScript 'preflight.ps1') -ProjectRoot $projectRoot -Purpose Simulation -ExpectedVendor $settings.Vendor -PreparedLibraryNames $preparedNames
+$preflight = & (Join-Path $projectHelpers 'preflight.ps1') -ProjectRoot $projectRoot -Purpose Simulation -ExpectedVendor $settings.Vendor -PreparedLibraryNames $preparedNames
 $preflight | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $jobRoot 'preflight.json') -Encoding utf8NoBOM
 if ($preflight.status -ne 'PASS') {
     Write-Host "[UNVERIFIED] Simulation preflight did not pass." -ForegroundColor Yellow
