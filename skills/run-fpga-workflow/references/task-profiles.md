@@ -4,7 +4,7 @@ Load only the relevant profile.
 
 ## Datapath or FSM
 
-Define ports, throughput, latency, backpressure, buffers, precision, overflow/saturation, illegal-state recovery, and unchanged boundaries. Pre-review with verification and CDC/timing; add vendor/board roles for external I/O. Acceptance includes directed boundaries, reset, random backpressure, and synthesis/STA when structure or target timing may change.
+Define ports, throughput, latency, backpressure, buffers, precision, overflow/saturation, illegal-state recovery, and unchanged boundaries. Freeze an impact cone and cycle contract. For pipeline/FSM/FIFO/RAM changes, run the temporal reviewer in shadow mode against one bounded clock-domain cone. Acceptance includes directed boundaries, reset, random backpressure, a cycle-indexed checker, and synthesis/STA when structure or target timing may change.
 
 ## Registers, commands, IRQ, or DMA
 
@@ -18,6 +18,8 @@ Use CDC/timing and verification pre-review; add vendor/board review for clock pr
 
 Keep product behavior in common RTL. Wrap PLL/clock/I/O/SERDES/delay/RAM/FIFO/DDR/transceiver/boot/debug and target constraints. Select portable or vendor-optimized implementations by target, not scattered conditionals. Each target needs exact device/tool/IP data, an independent build/report row, and equivalence tests.
 
+Automatic scripts support only Xilinx (`.xpr`/`.xci`), Pango (`.pds`/`.idf`), and Anlogic (`.al`/marked `.ipc`). Conflicts and other vendors fail closed. A generated formal project contains exactly one adapter and one `codex_out` output root.
+
 ## Board or high-energy output
 
 Require exact manuals/schematics and safe defaults before physical steps. Separate simulation, static implementation evidence, instrument capture, unloaded tests, and controlled load tests. Wiring, power-up, movement, heat, laser, relay, high voltage, and energy enable are USER ACTIONS with prerequisites, stop conditions, and recovery.
@@ -28,7 +30,7 @@ Require exact manuals/schematics and safe defaults before physical steps. Separa
 - Firmware/drivers: `embedded_engineer` in a later sequential batch.
 - Testbench/assertions/reference models: `verification_engineer` in a later sequential batch.
 - Reviews: read-only; reviewers never fix findings.
-- EDA output: unique ignored directory per job; never commit vendor databases or generated IP.
+- EDA output: unique ignored `codex_out/<run-id>/...` directory per job; never commit vendor databases or generated IP.
 
 ## Minimum sign-off evidence
 

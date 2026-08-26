@@ -1,0 +1,43 @@
+[CmdletBinding()]
+param([ValidateSet('compile','build','clean')][string]$Action)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+$projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+$settings = Import-PowerShellDataFile -LiteralPath (Join-Path $PSScriptRoot 'setting.psd1')
+if ([string]::IsNullOrWhiteSpace($Action)) { $Action = [string]$settings.DefaultBuildAction }
+if ($Action -eq 'clean') {
+    $outRoot = [IO.Path]::GetFullPath((Join-Path $projectRoot 'codex_out'))
+    $expected = $projectRoot.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar + 'codex_out'
+    if (-not $outRoot.Equals($expected, [StringComparison]::OrdinalIgnoreCase)) { throw "Unsafe clean target: $outRoot" }
+    if (Test-Path -LiteralPath $outRoot -PathType Container) {
+        foreach ($item in Get-ChildItem -LiteralPath $outRoot -Force | Where-Object { $_.Name -ne '_cache' }) {
+            $candidate = [IO.Path]::GetFullPath($item.FullName)
+            $prefix = $outRoot.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+            if (-not $candidate.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) { throw "Unsafe clean item: $candidate" }
+            Remove-Item -LiteralPath $candidate -Recurse -Force
+        }
+    }
+    Write-Host '[PASS] Removed non-cache jobs only from codex_out. No vendor executable was invoked.'
+    exit 0
+}
+$runId = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssfffZ') + '-' + [Guid]::NewGuid().ToString('N').Substring(0,8)
+$jobRoot = Join-Path $projectRoot "codex_out\$runId\build"
+New-Item -ItemType Directory -Path $jobRoot -Force | Out-Null
+
+$detection = & (Join-Path $PSScriptRoot 'detect-vendor.ps1') -ProjectRoot $projectRoot -OutputPath (Join-Path $jobRoot 'vendor-detection.json')
+if ($detection.status -ne 'DETECTED' -or $detection.vendor -ne $settings.Vendor) {
+    Write-Host "[UNVERIFIED] $($detection.message)" -ForegroundColor Yellow
+    exit 3
+}
+& (Join-Path $PSScriptRoot 'update_filelist.ps1') -ProjectRoot $projectRoot -Vendor $settings.Vendor | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $jobRoot 'filelist-result.json') -Encoding utf8NoBOM
+$preflight = & (Join-Path $PSScriptRoot 'preflight.ps1') -ProjectRoot $projectRoot -Purpose Build -ExpectedVendor $settings.Vendor
+$preflight | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $jobRoot 'preflight.json') -Encoding utf8NoBOM
+if ($preflight.status -ne 'PASS') {
+    Write-Host "[UNVERIFIED] Build preflight did not pass." -ForegroundColor Yellow
+    $preflight.issues | ForEach-Object { Write-Host " - $_" }
+    exit 3
+}
+$adapter = Join-Path $PSScriptRoot '__BUILD_ADAPTER__'
+& pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $adapter -ProjectRoot $projectRoot -Action $Action -JobRoot $jobRoot
+exit $LASTEXITCODE

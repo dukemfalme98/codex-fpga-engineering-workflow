@@ -1,6 +1,6 @@
 {
   "name": "codex-fpga-engineering-workflow",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Evidence-driven multi-agent FPGA and SoC FPGA engineering workflow for Codex.",
   "author": {
     "name": "prasetyarobert205-jpg",
@@ -14,7 +14,7 @@
   "interface": {
     "displayName": "FPGA Engineering Workflow",
     "shortDescription": "Multi-role FPGA design, verification, timing, and review.",
-    "longDescription": "A single-writer, evidence-driven Codex workflow for FPGA/SoC FPGA architecture, RTL implementation, verification, CDC/RDC, STA, interfaces, vendor platforms, board validation, and independent sign-off.",
+    "longDescription": "A single-writer, evidence-driven Codex workflow for FPGA/SoC FPGA architecture, cycle-accurate RTL, independent simulation evidence, CDC/RDC, STA, three-vendor toolflows, board validation, and sign-off.",
     "developerName": "prasetyarobert205-jpg",
     "category": "Developer Tools",
     "capabilities": ["Analyze", "Write", "Verify", "Review"],

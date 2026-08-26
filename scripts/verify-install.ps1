@@ -21,8 +21,8 @@ foreach ($entry in $manifest.files) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { $errors.Add("Missing: $path"); continue }
     if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $entry.sha256) { $errors.Add("Modified: $path") }
 }
-$agents = Get-ChildItem -LiteralPath (Join-Path $targetRoot '.codex\agents') -File -Filter '*.toml' -ErrorAction SilentlyContinue | Where-Object { $_.BaseName -in @('fpga_architect','fpga_engineer','verification_engineer','fpga_cdc_timing_reviewer','fpga_interface_architect','fpga_vendor_platform_reviewer','fpga_board_validation_engineer','fpga_reviewer','system_architect','embedded_engineer','hardware_datasheet','independent_reviewer') }
-if ($agents.Count -ne 12) { $errors.Add("Expected 12 workflow agent files; found $($agents.Count).") }
+$agents = Get-ChildItem -LiteralPath (Join-Path $targetRoot '.codex\agents') -File -Filter '*.toml' -ErrorAction SilentlyContinue | Where-Object { $_.BaseName -in @('fpga_architect','fpga_engineer','verification_engineer','fpga_temporal_evidence_reviewer','fpga_cdc_timing_reviewer','fpga_interface_architect','fpga_vendor_platform_reviewer','fpga_board_validation_engineer','fpga_reviewer','system_architect','embedded_engineer','hardware_datasheet','independent_reviewer') }
+if ($agents.Count -ne 13) { $errors.Add("Expected 13 workflow agent files; found $($agents.Count).") }
 $skillPath = Join-Path $targetRoot '.agents\skills\run-fpga-workflow\SKILL.md'
 if (-not (Test-Path -LiteralPath $skillPath -PathType Leaf)) { $errors.Add("Missing skill: $skillPath") }
 if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_ }; throw 'Installation verification failed.' }

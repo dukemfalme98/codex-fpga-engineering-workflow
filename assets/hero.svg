@@ -35,7 +35,7 @@
 
     <g transform="translate(0 220)" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600">
       <rect width="116" height="34" rx="17" fill="#12284e" stroke="#38bdf8" stroke-opacity="0.45"/>
-      <text x="58" y="22" text-anchor="middle" fill="#bae6fd">12 expert roles</text>
+      <text x="58" y="22" text-anchor="middle" fill="#bae6fd">13 expert roles</text>
       <rect x="128" width="142" height="34" rx="17" fill="#17264e" stroke="#818cf8" stroke-opacity="0.5"/>
       <text x="199" y="22" text-anchor="middle" fill="#c7d2fe">Single-writer gate</text>
       <rect x="282" width="154" height="34" rx="17" fill="#211e4d" stroke="#a78bfa" stroke-opacity="0.5"/>

@@ -32,6 +32,12 @@ Derive tests from requirements and risk: reset/startup, normal traffic, empty/fu
 
 After implementation inspect netlist intent, utilization, WNS/TNS, congestion, fanout, clock quality, CDC/RDC, DRC, methodology, power, and bitstream logs as applicable. Board work must verify exact electrical facts and proceed through human-controlled safe stages. Motion, heat, laser, relay, high voltage, and other high-energy outputs must remain safe during reset, configuration loss, clock loss, communication loss, watchdog, and faults. Simulation is not board validation.
 
+For non-trivial synchronous changes, review a bounded impact cone and reason in edge order: pre-edge state, RHS/priority evaluation using old values, nonblocking-assignment commit, combinational settling, and the next sampling edge. Track data, valid/ready, sidebands, stall, flush, reset, FIFO/RAM state, and pipeline tokens. If the cone crosses domains or shared state, partition it instead of truncating it.
+
+Verification assets must be independent of current DUT behavior. The author of a changed reference model/checker cannot independently sign its evidence. Use cycle-indexed expected/actual comparisons, Model Cards for non-trivial device/protocol models, and negative canaries for critical checkers. A clean log, `$stop`, or visual waveform alone is not a simulation pass.
+
+Classify DUT, testbench, model, assertion, script-path, compile/elaboration, tool, vendor-library, and timeout failures before changing RTL. Automatic repair/re-review is limited to three rounds; two consecutive no-progress rounds stop blind editing. Store Codex process files only under project-root `codex_out`.
+
 ## Multi-role ownership and sign-off
 
 Use one product-source writer per checkout. Read-only architecture, CDC/timing, interface, vendor, board, and review roles may work in parallel on stable snapshots. Firmware and verification assets, when required, are separate sequential write batches. For checkpoint supervision, stop the writer, freeze the diff/hash, review that snapshot, consolidate findings, then return one repair list to the same writer. Do not advertise character-by-character monitoring.

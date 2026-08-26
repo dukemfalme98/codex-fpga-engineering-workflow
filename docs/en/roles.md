@@ -2,7 +2,7 @@
 
 [README](../../README.md) · [Architecture](architecture.md) · [Installation](installation.md) · [Usage](usage.md) · [Safety and evidence](safety-and-evidence.md)
 
-The package defines eight core FPGA roles and four conditional cross-domain roles. Roles are intentionally narrow: architecture decides, one implementer writes product sources, verification owns test evidence, specialists review specific risks, and independent reviewers sign off without repairing their own findings.
+The package defines nine core FPGA roles and four conditional cross-domain roles. Roles are intentionally narrow: architecture decides, one implementer writes product sources, verification authors test assets, a shadow specialist audits temporal evidence, and independent reviewers sign off without repairing their own findings.
 
 ## Complete role matrix
 
@@ -11,6 +11,7 @@ The package defines eight core FPGA roles and four conditional cross-domain role
 | `fpga_architect` | Every non-trivial FPGA task; lead for `ANALYZE`, `QUICK`, and `FULL` | Strictly read-only | Facts/unknowns, scope/non-goals, architecture/data flow, performance budget, clock/reset/CDC impact, interface/regmap impact, vendor boundary, ownership order, acceptance criteria, risks, questions | Editing files; inventing project facts; silently choosing an ambiguous interface; self-signing implementation |
 | `fpga_engineer` | Authorized product RTL, constraint, wrapper, regmap-implementation, or FPGA-build change | Sole default product-source writer | Minimal synthesizable diff; behavior/latency/throughput; clock/reset/CDC effects; commands and actual evidence; unverified items; review handoff | Editing firmware or board design; changing unconfirmed contracts; broad refactors; weakening tests; editing generated/encrypted vendor sources; self-signing |
 | `verification_engineer` | Every implementation review; test-asset writing when separately assigned | Product read-only; may write only test assets in a later sequential batch | Requirement-to-test trace, risk-based test plan, assertions/models/scoreboards/coverage, exact regression evidence, gaps | Editing product RTL to make tests pass; deleting or weakening failures; sharing mutable EDA work areas; claiming unrun tests passed |
+| `fpga_temporal_evidence_reviewer` | Shadow review for pipeline/FSM/FIFO/RAM behavior, changed verification assets, false-pass risk, or critical simulation evidence | Strictly read-only; shadow-only initially | Bounded impact-cone cycle table, model/checker independence audit, simulation classification, stable-ID findings, `NEEDS_PARTITION` when scope is unbounded | Scanning an entire large repository by default; editing RTL/TB/models; coaching repair; replacing CDC/STA/final sign-off |
 | `fpga_cdc_timing_reviewer` | Any clock/reset/crossing/constraint/timing impact; timing-sensitive combinational logic | Strictly read-only | Clock/reset inventory, crossing classification, RDC analysis, constraint audit, timing-path findings, STA/MTBF evidence gaps | Repairing RTL/constraints; approving bitwise bus synchronization; inventing clock relationships; masking faults with broad false paths or waivers |
 | `fpga_interface_architect` | CSR, command, mailbox, IRQ, DMA, firmware contract, or compatibility impact | Strictly read-only | Source-of-truth assessment, field/side-effect semantics, concurrency behavior, compatibility risks, firmware acceptance criteria | Editing RTL/firmware; inventing addresses or endianness; independently changing published fields; accepting duplicate hand-maintained regmaps |
 | `fpga_vendor_platform_reviewer` | Vendor IP, primitive, target wrapper, clocking, I/O, memory, transceiver, or constraint impact | Strictly read-only | Per-target semantic comparison, portable/vendor boundary findings, build/constraint consistency, target-specific evidence gaps | Editing wrappers; copying full business RTL per vendor; assuming primitive equivalence; claiming target support without a target build |
@@ -21,7 +22,7 @@ The package defines eight core FPGA roles and four conditional cross-domain role
 | `hardware_datasheet` | Exact electrical, clock, reset, pin, power, or part behavior needs primary-source evidence | Conditional, strictly read-only | Part number, document title/revision/date, page/table/figure, quoted limit or semantic, applicability and uncertainty | Editing design files; relying on unsourced recollection; mixing revisions or part variants; declaring a board safe from a generic family guide |
 | `independent_reviewer` | Cross-domain release or safety-critical/high-energy behavior | Conditional, strictly read-only and independent | Integrated FPGA/hardware/firmware evidence audit, safety-boundary verdict, remaining user actions | Editing artifacts; replacing project certification; accepting inferred electrical facts; signing a release it helped implement |
 
-Nine role TOML files explicitly set `sandbox_mode = "read-only"`: all roles except the three conditional writers or write-capable roles (`fpga_engineer`, `verification_engineer`, and `embedded_engineer`). Write capability does not imply unrestricted scope; it is activated only by explicit task authorization and the assigned sequential batch.
+Ten role TOML files explicitly set `sandbox_mode = "read-only"`: all roles except the three conditional writers or write-capable roles (`fpga_engineer`, `verification_engineer`, and `embedded_engineer`). Write capability does not imply unrestricted scope; it is activated only by explicit task authorization and the assigned sequential batch.
 
 ## Default write-order matrix
 
@@ -34,6 +35,7 @@ Nine role TOML files explicitly set `sandbox_mode = "read-only"`: all roles exce
 | Firmware batch, if required | `embedded_engineer` | No | **Yes** | No | No self-sign-off |
 | Verification-asset batch, if required | `verification_engineer` | No | No | **Yes** | Verification evidence |
 | Isolated validation | Assigned runner under coordinator control | No source editing | No source editing | No failure suppression | Commands/reports |
+| Temporal evidence shadow | `fpga_temporal_evidence_reviewer`, when triggered | No | No | No | Bounded independent evidence findings |
 | Specialist re-review | Relevant specialists, always including verification review | No | No | No | **Yes** |
 | FPGA final review | `fpga_reviewer` | No | No | No | **Independent verdict** |
 | Cross-domain final review, if required | `independent_reviewer` | No | No | No | **Independent verdict** |

@@ -1,0 +1,14 @@
+@{
+    SchemaVersion = '1.0.0'
+    ProjectName = '__PROJECT_NAME__'
+    TopModule = '__TOP_MODULE__'
+    Vendor = '__VENDOR__'
+    ToolVersion = '__TOOL_VERSION__'
+    Device = '__DEVICE__'
+    Package = '__PACKAGE__'
+    VendorProjectFile = ''
+    DefaultBuildAction = 'compile'
+    SimulationTop = '__SIMULATION_TOP__'
+    DefaultSimulationCase = '__DEFAULT_CASE__'
+    RequiredSimulationLibraries = @()
+}

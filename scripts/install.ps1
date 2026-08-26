@@ -42,8 +42,8 @@ if ($InstallAgentsTemplate) {
     $mappings.Add([pscustomobject]@{ Source = (Join-Path $packageRoot 'templates\AGENTS.fpga.md'); Relative = $agentsTarget })
 }
 
-if (($mappings | Where-Object { $_.Relative -like '.codex/agents/*.toml' }).Count -ne 12) {
-    throw 'Package must contain exactly 12 agent TOML files.'
+if (($mappings | Where-Object { $_.Relative -like '.codex/agents/*.toml' }).Count -ne 13) {
+    throw 'Package must contain exactly 13 agent TOML files.'
 }
 
 $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'

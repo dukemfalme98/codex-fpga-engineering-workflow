@@ -120,5 +120,13 @@ If project evidence conflicts with a remembered pattern, the project evidence wi
 - Vendor-specific logic remains behind target/platform boundaries whenever practical.
 - Physical high-energy actions remain under qualified human control.
 - Missing or unread evidence remains `NOT RUN` or `UNVERIFIED`.
+- Temporal review is bounded by a stable snapshot and impact cone; it returns `NEEDS_PARTITION` instead of silently truncating a large design.
+- Verification authors do not independently accept evidence produced by models/checkers they changed.
+- All Codex-generated process files use project-root `codex_out`.
+- Automatic repair stops after three rounds or two consecutive no-progress rounds.
+
+## Stable artifacts and shadow evidence
+
+Non-trivial work uses task, snapshot, impact, cycle, verification, run, simulation-evidence, and findings-ledger artifacts. These bind every report and finding to the same source state. The 13th role reviews temporal and simulation evidence in `STATIC_CYCLE`, `SIMULATION_EVIDENCE`, or `COMBINED` mode. It starts as `SHADOW`, handles one bounded clock-domain transaction cone, and supplies specialist findings to the final reviewer without replacing CDC/RDC, STA, or release sign-off.
 
 Next: review the [complete role matrix](roles.md) or select a workflow mode in the [usage guide](usage.md).

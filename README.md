@@ -8,11 +8,11 @@
 
 [![Package validation](https://github.com/prasetyarobert205-jpg/codex-fpga-engineering-workflow/actions/workflows/validate.yml/badge.svg)](https://github.com/prasetyarobert205-jpg/codex-fpga-engineering-workflow/actions/workflows/validate.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-16a34a.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.2.0-2457c5.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.0-2457c5.svg)](CHANGELOG.md)
 [![PowerShell 7](https://img.shields.io/badge/PowerShell-7%2B-5391FE?logo=powershell&logoColor=white)](docs/en/installation.md)
 [![FPGA / SoC FPGA](https://img.shields.io/badge/FPGA%20%2F%20SoC%20FPGA-engineering-7c3aed.svg)](docs/en/architecture.md)
 
-**Architecture · RTL · Verification · CDC/RDC · Timing · Interfaces · Vendor platforms · Board evidence · Independent sign-off**
+**Architecture · Cycle-accurate RTL · Independent simulation evidence · CDC/RDC · Timing · Three-vendor toolflows · Sign-off**
 
 [Quick start](#60-second-quick-start) · [Architecture](docs/en/architecture.md) · [Roles](docs/en/roles.md) · [Usage](docs/en/usage.md) · [Safety and evidence](docs/en/safety-and-evidence.md)
 
@@ -34,6 +34,9 @@ This workflow makes the engineering boundaries explicit:
 - **Review independence is preserved.** The final reviewer does not coach the implementation or repair its own findings.
 - **Evidence levels remain separate.** Source review, simulation, formal proof, CDC/RDC, synthesis, implementation STA, instrument measurements, and board results are not interchangeable.
 - **Vendor details stay at the platform boundary.** Portable product logic is separated from primitives, IP, pins, clocks, transceivers, constraints, and target wrappers.
+- **Temporal claims follow real clock edges.** High-risk synchronous changes are reviewed from pre-edge state through RHS/NBA behavior to the next sampling edge.
+- **Simulation cannot grade itself.** Verification authors build tests; a separate read-only shadow reviewer audits model independence, checkers, waveforms, and pass conditions.
+- **One click means one deterministic path.** Formal projects refresh source/IP lists, preflight dependencies, invoke one selected vendor adapter, and isolate process files under `codex_out`.
 
 ## 60-second quick start
 
@@ -79,6 +82,8 @@ flowchart TD
     I --> J[Isolated validation evidence]
     J --> K[Specialist re-review]
     K --> L[Independent final sign-off]
+    J -. shadow evidence .-> T[Temporal evidence reviewer]
+    T -. specialist findings .-> K
 ```
 
 The conversation coordinator is the control plane: it protects authorization, selects a workflow mode, reads the evidence baseline, schedules roles, resolves evidence conflicts, controls sequential write batches, isolates validation jobs, and reports what is proven versus still unknown. The project SSOT remains the source of truth throughout.
@@ -95,13 +100,14 @@ The conversation coordinator is the control plane: it protects authorization, se
 
 Recommended checkpoints include the interface skeleton, FSM and error recovery, datapath/FIFO/RAM/DSP, CDC/reset, register/IRQ/DMA, vendor wrapper/constraints, and final integration. `BLOCKER` or `HIGH` findings stop the next slice. The final reviewer stays outside this coaching loop to preserve independent sign-off.
 
-## The 12 roles
+## The 13 roles
 
 | Role | Primary responsibility | Permission model |
 |---|---|---|
 | `fpga_architect` | Requirements, microarchitecture, data flow, performance budgets, ownership, and acceptance criteria | Strictly read-only |
 | `fpga_engineer` | Minimal synthesizable changes to RTL, constraints, platform wrappers, regmap implementation, and FPGA build scripts | Sole default product-source writer |
 | `verification_engineer` | Test strategy, testbench, assertions, reference models, coverage, and regression evidence | Product read-only; test assets only in a separate sequential batch |
+| `fpga_temporal_evidence_reviewer` | Shadow review of bounded cycle behavior and independent simulation-evidence integrity | Strictly read-only; no repair coaching, CDC/STA substitution, or final sign-off |
 | `fpga_cdc_timing_reviewer` | Clocks, resets, CDC/RDC, constraints, exceptions, I/O timing, and STA evidence | Strictly read-only |
 | `fpga_interface_architect` | CSR, commands, mailbox, IRQ, DMA, endianness, atomicity, and firmware compatibility | Strictly read-only |
 | `fpga_vendor_platform_reviewer` | Vendor IP, primitives, wrappers, constraints, and target consistency | Strictly read-only |
@@ -112,7 +118,7 @@ Recommended checkpoints include the interface skeleton, FSM and error recovery, 
 | `hardware_datasheet` | Exact part, document revision, page, electrical, clock, reset, and pin evidence | Conditional, strictly read-only |
 | `independent_reviewer` | Cross-domain or safety-critical release sign-off | Conditional, strictly read-only |
 
-Nine role configurations explicitly set `sandbox_mode = "read-only"`. No implementer may issue its own final `PASS`. See [roles and write ownership](docs/en/roles.md) for triggers, deliverables, prohibited actions, and the write-order matrix.
+Ten role configurations explicitly set `sandbox_mode = "read-only"`. The other three are potential sequential writers with disjoint ownership. No implementer or verification-asset author may independently issue its own final acceptance. See [roles and write ownership](docs/en/roles.md) for triggers, deliverables, prohibited actions, and the write-order matrix.
 
 ## Choose the right mode
 
@@ -129,7 +135,9 @@ Risk never expands write authorization. A crossing, published interface, externa
 - Diagnose a CDC/RDC warning without hiding it behind a broad waiver.
 - Plan and implement an AXI-Stream or FIFO datapath with explicit throughput, latency, alignment, and backpressure.
 - Review a register map, IRQ clear sequence, DMA ownership protocol, or firmware compatibility change.
-- Compare portable RTL with Xilinx/AMD, Intel, Anlogic, Pango, or other target wrappers without duplicating business logic.
+- Compare portable RTL with AMD/Xilinx, Pango, or Anlogic target wrappers without duplicating business logic.
+- Audit a false simulation pass using cycle-indexed scoreboards, Model Cards, negative canaries, and selected proof windows.
+- Scaffold a clean formal project whose build, simulation, and lint entry points are all double-clickable `run.bat` files.
 - Audit combinational depth, cascaded priority/MUX logic, fanout, and critical paths using actual synthesis/implementation evidence.
 - Build a requirement-to-design-to-test trace for a risky refactor.
 - Prepare a safe board-validation procedure while keeping physical actions under qualified human control.
@@ -137,7 +145,7 @@ Risk never expands write authorization. A crossing, published interface, externa
 
 ## Safe installation behavior
 
-The installer deploys the 12 agent TOML files and the `run-fpga-workflow` skill. It does **not** overwrite an existing file with different content unless `-Force` is explicitly supplied. Forced replacement creates a timestamped backup first. `-WhatIf` previews the plan. The optional FPGA rules template requires `-InstallAgentsTemplate`.
+The installer deploys the 13 agent TOML files and the `run-fpga-workflow` skill. It does **not** overwrite an existing file with different content unless `-Force` is explicitly supplied. Forced replacement creates a timestamped backup first. `-WhatIf` previews the plan. The optional FPGA rules template requires `-InstallAgentsTemplate`.
 
 Uninstall uses the recorded manifest and SHA-256 values. It removes only exact installed files that remain unchanged, preserves user-modified files, and never recursively deletes a broad directory tree.
 
@@ -153,16 +161,71 @@ pwsh -NoProfile -File .\scripts\install.ps1 -Scope Project `
 
 Full instructions: [install, verify, upgrade, and uninstall](docs/en/installation.md).
 
+## One-click formal project scaffold
+
+Create a local project skeleton for exactly one supported vendor:
+
+```powershell
+pwsh -NoProfile -File .\scripts\new-fpga-project.ps1 `
+  -Destination C:\work\my-fpga `
+  -ProjectName my-fpga `
+  -TopModule top `
+  -Vendor XILINX
+```
+
+Then add the real vendor project file under `project/par`, copy `project/script/toolchain.local.psd1.example` to the ignored `toolchain.local.psd1`, and configure exact installed commands. From then on the user can double-click:
+
+- `project/script/run.bat` for compile/build;
+- `simulation/script/run.bat` for the configured case;
+- `linter/script/run.bat` for lint.
+
+Each wrapper anchors itself with `%~dp0`, detects the vendor, refreshes separate deterministic product/IP/testbench/model/include lists, checks tools/libraries/cases, creates an isolated job under `codex_out`, invokes only the selected adapter, and prints a truthful result. Dependency-sensitive packages and VHDL require an exported `compile_order.txt`; arbitrary vendor order is never guessed. Xilinx (`.xpr`/`.xci`), Pango (`.pds`/`.idf`), and Anlogic (`.al` plus marked `.ipc`) are supported. Conflicts, other vendors, missing official libraries, or unconfigured commands fail closed as `UNVERIFIED`.
+
+The generated formal structure is intentionally small:
+
+```text
+<project-root>/
+|-- README.md
+|-- AGENTS.md
+|-- .gitignore
+|-- document/
+|-- project/
+|   |-- rtl/
+|   |-- ip/                  optional
+|   |-- sdc/
+|   |-- par/
+|   `-- script/              run.bat, one adapter, canonical src_list.txt
+|-- simulation/
+|   |-- tb/case/
+|   `-- script/              run.bat, one adapter, canonical src_list.txt
+|-- linter/
+|   |-- lint_bb/             optional
+|   `-- script/              run.bat and canonical lint_list.txt
+|-- release/
+|   |-- golden/              optional
+|   `-- output/
+`-- codex_out/               ignored, isolated generated process files
+```
+
+See [Formal project layout and one-click behavior](skills/run-fpga-workflow/references/project-layout.md).
+
+## Temporal evidence and private learning
+
+The 13th role, `fpga_temporal_evidence_reviewer`, starts in **SHADOW** mode. It reviews only a bounded impact cone—not an entire large repository—and can operate as `STATIC_CYCLE`, `SIMULATION_EVIDENCE`, or `COMBINED`. It does not replace CDC/RDC, STA, or final sign-off. This local-first rollout lets teams measure useful findings, duplicates, false positives, and elapsed-time cost before promoting another permanent gate.
+
+The workflow can also query an optional private after-sales fault library. It improves through curated, verified cases rather than model-weight training. The public repository contains only the schema and empty/config/query hook; private documents, customer details, and project-specific facts remain outside the package. Matches are diagnostic leads and must be revalidated against the current target and evidence.
+
 ## Repository layout
 
 ```text
 .codex-plugin/plugin.json           Plugin metadata
-.codex/agents/*.toml                Twelve role definitions and prompts
-skills/run-fpga-workflow/           Orchestration skill and reference policies
+.codex/agents/*.toml                Thirteen role definitions and prompts
+skills/run-fpga-workflow/           Orchestration skill, schemas, and reference policies
 templates/AGENTS.fpga.md             Optional project/user engineering rules
+templates/fpga-project/              Clean formal-project scaffold and one-adapter templates
 examples/*.prompt.md                Copyable ANALYZE, QUICK, and FULL prompts
 docs/en/                            Architecture, roles, installation, usage, safety
-scripts/                            Install, verify, uninstall, package validation
+scripts/                            Install/validate plus scaffold, vendor, file-list, preflight, and private-library helpers
 .github/                            Validation workflow and contribution templates
 ```
 
@@ -181,7 +244,7 @@ Physical wiring, power-up, download, motion, heat, lasers, relays, high voltage,
 | Guide | What it covers |
 |---|---|
 | [Architecture](docs/en/architecture.md) | Control plane, lifecycle, safe parallelism, checkpoints, SSOT, and sign-off independence |
-| [Roles](docs/en/roles.md) | All 12 roles, triggers, permissions, deliverables, prohibited actions, and write order |
+| [Roles](docs/en/roles.md) | All 13 roles, triggers, permissions, deliverables, prohibited actions, and write order |
 | [Installation](docs/en/installation.md) | Prerequisites, preview, user/project scope, backups, upgrade, verification, and uninstall |
 | [Usage](docs/en/usage.md) | Mode selection, copyable prompts, checkpoints, and expected reports |
 | [Safety and evidence](docs/en/safety-and-evidence.md) | Evidence ladder, claim boundaries, and high-energy user-action gates |
@@ -191,7 +254,7 @@ Physical wiring, power-up, download, motion, heat, lasers, relays, high voltage,
 
 ## Current limitations
 
-Version `0.2.0` provides package structure validation and English documentation. Fresh-session Codex discovery after installation remains **UNVERIFIED** until exercised in a clean environment. The repository does not include a vendor EDA toolchain, an FPGA design, board constraints, or board-specific electrical facts. It does not claim synthesis success, timing closure, CDC/RDC cleanliness, bitstream readiness, or hardware validation for a user's project.
+Version `0.3.0` adds a shadow temporal-evidence reviewer, workflow schemas, deterministic three-vendor detection, file-list generation, preflight, a formal project scaffold, one-click wrappers, and an empty private fault-library hook. The shadow role is not yet a permanent blocking gate. Fresh-session Codex discovery and real vendor EDA execution remain **UNVERIFIED** until exercised in an appropriately licensed local environment. The repository contains no FPGA product, vendor installation, board constraints, customer data, or private fault documents and claims no synthesis, timing, CDC/RDC, bitstream, or board result for a user's design.
 
 Custom-agent, skill, and plugin schemas can evolve. Pin a release and re-run the included validation and installation verification after Codex updates. See [COMPATIBILITY.md](COMPATIBILITY.md).
 

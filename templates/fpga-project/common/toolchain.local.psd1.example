@@ -1,0 +1,16 @@
+@{
+    # Copy this file to toolchain.local.psd1. That file is intentionally ignored.
+    BuildCommand = ''
+    BuildArguments = @('{projectFile}', '{action}', '{srcList}', '{ipList}', '{includeDirs}', '{defines}', '{jobRoot}')
+    SimulatorCommand = ''
+    SimulatorArguments = @('{productSources}', '{testbenchSources}', '{modelList}', '{ipList}', '{includeDirs}', '{defines}', '{preparedLibraries}', '{simulationTop}', '{case}', '{seed}', '{jobRoot}')
+    LintCommand = ''
+    LintArguments = @('{lintList}', '{jobRoot}')
+    ToolVersion = ''
+    SimulatorVersion = ''
+    SimulationLibraries = @{}
+    # LibraryRecipes is optional. Each recipe must exactly match Vendor,
+    # ToolVersion, Device, and SimulatorVersion, point to official sources,
+    # and declare ExpectedOutputs that prove a successful staging result.
+    LibraryRecipes = @{}
+}

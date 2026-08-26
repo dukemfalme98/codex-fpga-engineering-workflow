@@ -1,0 +1,26 @@
+[CmdletBinding()]
+param([Parameter(Mandatory)][string]$ProjectRoot, [Parameter(Mandatory)][string]$Case, [Parameter(Mandatory)][string]$Mode, [Parameter(Mandatory)][int]$Seed, [Parameter(Mandatory)][string]$JobRoot)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+$vendor = '__VENDOR__'
+$projectScript = Join-Path $ProjectRoot 'project\script'
+$local = Import-PowerShellDataFile -LiteralPath (Join-Path $projectScript 'toolchain.local.psd1')
+$settings = Import-PowerShellDataFile -LiteralPath (Join-Path $projectScript 'setting.psd1')
+$productSources = Join-Path $ProjectRoot 'simulation\script\product_list.txt'
+$testbenchSources = Join-Path $ProjectRoot 'simulation\script\src_list.txt'
+$modelList = Join-Path $ProjectRoot 'simulation\script\model_list.txt'
+$ipList = Join-Path $ProjectRoot 'simulation\script\ip_list.txt'
+$includeDirs = Join-Path $ProjectRoot 'simulation\script\include_dirs.txt'
+$defines = Join-Path $ProjectRoot 'simulation\script\defines.txt'
+$preparedLibraries = Join-Path $JobRoot 'prepared-libraries.json'
+$arguments = @($local.SimulatorArguments | ForEach-Object { ([string]$_).Replace('{projectRoot}', $ProjectRoot).Replace('{productSources}', $productSources).Replace('{testbenchSources}', $testbenchSources).Replace('{modelList}', $modelList).Replace('{ipList}', $ipList).Replace('{includeDirs}', $includeDirs).Replace('{defines}', $defines).Replace('{simulationTop}', [string]$settings.SimulationTop).Replace('{case}', $Case).Replace('{mode}', $Mode).Replace('{seed}', [string]$Seed).Replace('{jobRoot}', $JobRoot).Replace('{preparedLibraries}', $preparedLibraries) })
+[IO.File]::WriteAllText((Join-Path $JobRoot 'command.txt'), (($local.SimulatorCommand + ' ' + ($arguments -join ' ')) + [Environment]::NewLine), [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText((Join-Path $JobRoot 'tool-version.txt'), (([string]$local.SimulatorVersion) + [Environment]::NewLine), [Text.UTF8Encoding]::new($false))
+& $local.SimulatorCommand @arguments 2>&1 | Tee-Object -FilePath (Join-Path $JobRoot 'run.log')
+$code = $LASTEXITCODE
+$result = [ordered]@{ status = if ($code -eq 0) {'UNVERIFIED'} else {'FAIL'}; classification = if ($code -eq 0) {'INCONCLUSIVE'} else {'COMPILE_ELAB_FAIL'}; vendor = $vendor; case = $Case; seed = $Seed; exit_code = $code; note = 'A zero exit code is not SIMULATION_PASS until independent checker and evidence review complete.' }
+$result | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $JobRoot 'result.json') -Encoding utf8NoBOM
+Write-Host "[$($result.status)] $vendor simulation exit code $code; independent evidence review is still required."
+if ($code -eq 0) { exit 3 }
+exit $code

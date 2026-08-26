@@ -1,0 +1,27 @@
+# __PROJECT_NAME__
+
+Formal FPGA project scaffold for **__VENDOR__**. Project-specific device, clocks, resets, interfaces, constraints, and acceptance evidence must be recorded in this repository before implementation or sign-off.
+
+## One-click entry points
+
+- `project/script/run.bat`: refreshes file lists, runs preflight, then invokes the selected build adapter.
+- `simulation/script/run.bat`: refreshes file lists, runs preflight, then invokes the selected simulation adapter.
+- `linter/script/run.bat`: refreshes file lists, runs preflight, then invokes the configured lint tool.
+
+Copy `project/script/toolchain.local.psd1.example` to the ignored `toolchain.local.psd1`, then set exact installed executable paths and confirmed arguments. A missing tool, vendor library, source, case, or project marker returns `UNVERIFIED`; it is not silently replaced.
+
+Generated process files belong only under `codex_out/`. Release candidates are promoted explicitly to `release/output/` after project-defined review.
+
+## Project structure
+
+```text
+document/
+project/{rtl,sdc,par,script}/
+simulation/{tb/case,script}/
+linter/script/
+release/output/
+codex_out/
+```
+
+Optional `project/ip`, `linter/lint_bb`, and `release/golden` directories are created only when requested by the scaffold command.
+

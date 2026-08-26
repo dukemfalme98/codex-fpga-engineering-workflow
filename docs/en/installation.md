@@ -73,7 +73,7 @@ The targets are the same relative locations under the selected project root.
 
 ## Optional AGENTS.md template
 
-By default, installation deploys only the 12 agent definitions and the workflow skill. It does **not** install or overwrite an `AGENTS.md` file.
+By default, installation deploys only the 13 agent definitions and the workflow skill. It does **not** install or overwrite an `AGENTS.md` file.
 
 To opt in at project scope:
 
@@ -108,7 +108,7 @@ pwsh -NoProfile -File .\scripts\install.ps1 `
 
 ## Verify the installed files
 
-The verification script checks the install manifest, the recorded SHA-256 values, all 12 workflow agent files, and the installed skill entrypoint:
+The verification script checks the install manifest, the recorded SHA-256 values, all 13 workflow agent files, and the installed skill entrypoint:
 
 ```powershell
 pwsh -NoProfile -File .\scripts\verify-install.ps1 -Scope User
@@ -130,7 +130,21 @@ explain which project evidence you would read before reviewing an RTL change.
 Do not modify files.
 ```
 
-File verification is not the same as fresh-session discovery. Version 0.2.0 still labels fresh-session end-to-end discovery **UNVERIFIED** until exercised in a clean target environment.
+File verification is not the same as fresh-session discovery. Version 0.3.0 still labels fresh-session end-to-end discovery **UNVERIFIED** until exercised in a clean target environment.
+
+## Create a formal FPGA project
+
+The package can create a clean local project scaffold without installing an EDA tool:
+
+```powershell
+pwsh -NoProfile -File .\scripts\new-fpga-project.ps1 `
+  -Destination C:\work\my-fpga `
+  -ProjectName my-fpga `
+  -TopModule top `
+  -Vendor XILINX
+```
+
+Use `PANGO` or `ANLOGIC` for those targets. The scaffold emits only one vendor adapter. Add exactly one matching project file under `project/par`, configure the ignored `project/script/toolchain.local.psd1`, then double-click the build, simulation, or lint `run.bat`. Each wrapper refreshes canonical file lists, performs preflight, and writes process evidence only to `codex_out`.
 
 ## Upgrade
 

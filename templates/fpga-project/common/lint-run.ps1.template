@@ -1,0 +1,28 @@
+[CmdletBinding()]
+param([ValidateSet('all','verilator','svlint')][string]$Action = 'all')
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+$projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+$projectScript = Join-Path $projectRoot 'project\script'
+$settings = Import-PowerShellDataFile -LiteralPath (Join-Path $projectScript 'setting.psd1')
+$runId = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssfffZ') + '-' + [Guid]::NewGuid().ToString('N').Substring(0,8)
+$jobRoot = Join-Path $projectRoot "codex_out\$runId\lint"
+New-Item -ItemType Directory -Path $jobRoot -Force | Out-Null
+& (Join-Path $projectScript 'update_filelist.ps1') -ProjectRoot $projectRoot -Vendor $settings.Vendor | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $jobRoot 'filelist-result.json') -Encoding utf8NoBOM
+$preflight = & (Join-Path $projectScript 'preflight.ps1') -ProjectRoot $projectRoot -Purpose Lint -ExpectedVendor $settings.Vendor
+$preflight | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $jobRoot 'preflight.json') -Encoding utf8NoBOM
+if ($preflight.status -ne 'PASS') {
+    Write-Host "[UNVERIFIED] Lint preflight did not pass." -ForegroundColor Yellow
+    $preflight.issues | ForEach-Object { Write-Host " - $_" }
+    exit 3
+}
+$local = Import-PowerShellDataFile -LiteralPath (Join-Path $projectScript 'toolchain.local.psd1')
+$arguments = @($local.LintArguments | ForEach-Object { ([string]$_).Replace('{lintList}', (Join-Path $PSScriptRoot 'lint_list.txt')).Replace('{jobRoot}', $jobRoot).Replace('{action}', $Action) })
+[IO.File]::WriteAllText((Join-Path $jobRoot 'command.txt'), (($local.LintCommand + ' ' + ($arguments -join ' ')) + [Environment]::NewLine), [Text.UTF8Encoding]::new($false))
+& $local.LintCommand @arguments 2>&1 | Tee-Object -FilePath (Join-Path $jobRoot 'run.log')
+$code = $LASTEXITCODE
+$result = [ordered]@{ status = if ($code -eq 0) {'PASS'} else {'FAIL'}; exit_code = $code; action = $Action }
+$result | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $jobRoot 'result.json') -Encoding utf8NoBOM
+Write-Host "[$($result.status)] Lint exit code $code."
+exit $code

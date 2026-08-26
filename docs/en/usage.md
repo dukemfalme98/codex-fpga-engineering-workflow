@@ -99,6 +99,17 @@ All physical wiring, power-up, download, motion, heat, relay, laser, or high-vol
 actions remain mine to execute. Do not claim board PASS from simulation.
 ```
 
+### FULL: cycle-accurate pipeline and simulation evidence
+
+```text
+Use $run-fpga-workflow in FULL mode for this pipeline change. Freeze one bounded
+impact cone and a cycle contract, then run the temporal-evidence reviewer in
+COMBINED shadow mode. Trace pre-edge values, RHS/NBA behavior, post-edge state,
+token/data/valid/sideband alignment, stall, flush, reset, and first/last traffic.
+Audit the reference model and checker independently, require a negative canary,
+and do not treat a zero simulator exit or clean waveform as SIMULATION_PASS.
+```
+
 Additional concise prompts are available in [`examples/`](../../examples/).
 
 ## Checkpoint examples
@@ -151,5 +162,6 @@ A complete workflow result should be easy to audit. Expect these sections, with 
 - State which commands are authoritative. The workflow intentionally does not guess vendor commands.
 - For a review-only task, say “do not modify files.” For implementation, explicitly authorize the desired scope.
 - Keep confidential RTL, schematics, logs, credentials, and customer data out of public issues.
+- For a new formal project, use `scripts/new-fpga-project.ps1`, configure one ignored local toolchain file, and then use the three double-clickable `run.bat` entry points. Process output remains under `codex_out`.
 
 For claim boundaries and board-action gates, continue to [Safety and evidence](safety-and-evidence.md).
