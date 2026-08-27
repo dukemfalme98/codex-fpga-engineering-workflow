@@ -26,4 +26,8 @@ jobs:
           $lists = ./scripts/update-filelists.ps1 -ProjectRoot $fixture -Vendor XILINX
           if ($detection.status -ne 'DETECTED' -or $detection.vendor -ne 'XILINX') { throw 'Vendor detection smoke test failed.' }
           if ($lists.product_source_count -ne 1) { throw 'File-list smoke test failed.' }
-          if (@(Get-ChildItem (Join-Path $fixture 'project/script') -Filter 'build_*.ps1').Count -ne 1) { throw 'Exactly one build adapter was not generated.' }
+          $projectScript = Join-Path $fixture 'project/script'
+          foreach ($requiredEntry in @('run.bat', 'setting.bat', 'src_list.txt')) {
+            if (-not (Test-Path (Join-Path $projectScript $requiredEntry))) { throw "Required build entry was not generated: $requiredEntry" }
+          }
+          if (@(Get-ChildItem $projectScript -Filter 'build_*.ps1').Count -ne 0) { throw 'Deprecated PowerShell build adapters were generated.' }
