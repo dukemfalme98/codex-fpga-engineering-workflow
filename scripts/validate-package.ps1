@@ -73,6 +73,7 @@ if ($skillText -notmatch 'at most three automatic repair/re-review rounds') { Ad
 if ($skillText -notmatch 'two consecutive no-progress rounds') { Add-CheckError 'Two-no-progress stop is missing from skill.' }
 if ($skillText -notmatch 'codex_out') { Add-CheckError 'codex_out isolation rule is missing from skill.' }
 if ($skillText -notmatch 'project/par' -or $skillText -notmatch 'simulation/work') { Add-CheckError 'Formal native output directories are missing from skill.' }
+if ($skillText -notmatch 'depth-0' -or $skillText -notmatch 'process PATH') { Add-CheckError 'Depth-0 launcher or command-name runtime contract is missing from skill.' }
 if ($skillText -match 'out/codex') { Add-CheckError 'Deprecated out/codex path remains in skill.' }
 
 $schemaFiles = Get-ChildItem -LiteralPath (Join-Path $root 'skills\run-fpga-workflow\references\schemas') -File -Filter '*.schema.json'
@@ -93,6 +94,7 @@ $simulationBatchTemplate = Get-Content -LiteralPath (Join-Path $root 'templates\
 if ($batchTemplate -notmatch [regex]::Escape('%~dp0')) { Add-CheckError 'One-click batch template is not anchored with %~dp0.' }
 if ($simulationBatchTemplate -notmatch [regex]::Escape('%~dp0')) { Add-CheckError 'Simulation batch template is not anchored with %~dp0.' }
 if ($batchTemplate -match '(?i)pwsh|powershell|\.ps1|\.psd1' -or $simulationBatchTemplate -match '(?i)pwsh|powershell|\.ps1|\.psd1') { Add-CheckError 'Generated user runtime still depends on PowerShell.' }
+if ($batchTemplate -match '(?i)VIVADO_BAT|MODELSIM_EXE|[A-Z]:\\[^\r\n"]+\.(exe|bat)' -or $simulationBatchTemplate -match '(?i)VIVADO_BAT|MODELSIM_EXE|[A-Z]:\\[^\r\n"]+\.(exe|bat)') { Add-CheckError 'Generated runtime embeds an absolute executable file.' }
 if ($batchTemplate -notmatch 'vendor-build\.bat' -or $simulationBatchTemplate -notmatch 'vendor-sim\.bat') { Add-CheckError 'Native vendor BAT adapters are missing from one-click templates.' }
 $scaffoldText = Get-Content -LiteralPath (Join-Path $root 'scripts\new-fpga-project.ps1') -Raw
 foreach ($canonical in @('project/rtl','project/par','project/script','simulation/script','linter/script','release/output')) {
@@ -100,6 +102,7 @@ foreach ($canonical in @('project/rtl','project/par','project/script','simulatio
 }
 if ($scaffoldText -match '(?i)(project2|par2|script2)') { Add-CheckError 'Generated scaffold contains a numbered standard directory.' }
 if ($scaffoldText -match [regex]::Escape('script\ai_run')) { Add-CheckError 'Generated user runtime still creates script/ai_run.' }
+if ($scaffoldText -notmatch 'canonical_project_file') { Add-CheckError 'Scaffold does not report the depth-0 canonical project file.' }
 foreach ($nativePath in @('project\script\setting.bat','project\script\vendor-build.bat','simulation\script\vendor-sim.bat')) {
     if ($scaffoldText -notmatch [regex]::Escape($nativePath)) { Add-CheckError "Scaffold is missing native runtime file: $nativePath" }
 }

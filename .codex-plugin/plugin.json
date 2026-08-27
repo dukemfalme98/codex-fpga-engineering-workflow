@@ -1,6 +1,6 @@
 {
   "name": "codex-fpga-engineering-workflow",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Evidence-driven multi-agent FPGA and SoC FPGA engineering workflow for Codex.",
   "author": {
     "name": "prasetyarobert205-jpg",

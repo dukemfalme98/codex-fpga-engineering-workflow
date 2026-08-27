@@ -13,6 +13,8 @@ The scaffold creates a clean, vendor-specific project. Generated and formally no
 |   |-- ip/                    optional
 |   |-- sdc/
 |   |-- par/
+|   |   |-- <project-name>.xpr|.pds|.al   one canonical depth-0 launcher
+|   |   `-- <project-name>.* native databases and reports
 |   `-- script/
 |       |-- run.bat
 |       |-- setting.bat
@@ -53,6 +55,10 @@ The scaffold creates a clean, vendor-specific project. Generated and formally no
 ## One-click contract
 
 The user double-clicks one of the three `run.bat` files. Each wrapper anchors itself with `%~dp0`, verifies the configured deterministic lists and preflight facts, invokes only the selected native vendor adapter, preserves the exit code, and prints a truthful result. Build state, databases, logs, and reports stay under `project/par`; formal ModelSim/Questa export, work libraries, logs, and waves stay under `simulation/work`. Codex-created experiments and review packets stay under `codex_out`. A successful diagnostic simulation reports `DIAGNOSTIC_ONLY`, not `SIMULATION_PASS`.
+
+The canonical vendor launcher is a direct file at `project/par/<project-name>.xpr`, `.pds`, or `.al`. Same-name tool databases are direct siblings. A newly generated `project/par/vivado_project/<name>.xpr`, `project/par/build/<name>.xpr`, or randomized project container fails normalized layout acceptance even though it is technically below `par`.
+
+Formal BAT files configure only a tool root or vendor environment, prepend required directories to their current process PATH, verify canonical commands, and invoke command names. Do not embed one machine's absolute `vivado.bat`, `vsim.exe`, or equivalent executable path; do not modify user or system PATH.
 
 Visible `script/` roots are deliberately small: user-facing BAT entry points, `setting.bat`, canonical lists, and confirmed Tcl/DO control files. The formal desktop runtime does not depend on Codex-private PowerShell. PowerShell remains available for package installation and Codex-side scaffolding or analysis.
 

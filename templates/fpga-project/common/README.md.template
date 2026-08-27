@@ -14,6 +14,10 @@ The scaffolded `vendor-build.bat` and `vendor-sim.bat` intentionally fail closed
 
 Formal vendor project state, databases, logs, and reports belong under `project/par`. Formal ModelSim/Questa export, local work libraries, logs, and waves belong under `simulation/work`. Codex experiments and review packets belong under `codex_out`. Release candidates are promoted explicitly to `release/output/` after project-defined review.
 
+The confirmed native adapter must create one real launcher directly at `project/par/__PROJECT_NAME__.xpr`, `project/par/__PROJECT_NAME__.pds`, or `project/par/__PROJECT_NAME__.al`. An extra `project/par/vivado_project/`, `project/par/build/`, or random project container is not part of the normalized layout. The scaffold does not fabricate the launcher before the target recipe is known.
+
+The adapter stores only a tool root or vendor environment, adds required command directories to the current BAT process PATH, verifies canonical command names, and invokes them by name. Do not embed machine-specific absolute executable paths or modify the user/system PATH.
+
 ## Project structure
 
 ```text

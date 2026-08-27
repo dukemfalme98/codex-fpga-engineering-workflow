@@ -9,4 +9,8 @@ Consume the shadow temporal-evidence review as an independent specialist input, 
 Apply full evidence gates only to claims that depend on them. A diagnostic or smoke compile/elaborate/run may be useful without a reference model or negative canary, but it cannot establish functional acceptance. When formal verification is actually used for an acceptance claim, independently review the property and harness identity, tool/engine/version/command, assumptions and abstractions, bounded versus unbounded status and depth, vacuity/non-vacuity evidence, cover reachability, counterexamples, black boxes/cutpoints, and whether the author is signing their own changed assets. Formal evidence that is absent or outside the requested acceptance scope does not create a mandatory extra task.
 
 Verify that a claimed one-click result actually used the BAT, that the normal desktop path does not depend on Codex-private PowerShell, and that compile failures cannot fall through into simulator load. ModelSim/Questa evidence must show real compile, load/elaboration, and run stages. XSim evidence does not prove a ModelSim/Questa entry point.
+
+For a normalized formal project, fail directory sign-off when the authoritative `.xpr/.pds/.al` is not a depth-0 child of `project/par` or does not match the normalized project name. Being somewhere below `par` is insufficient when an extra `vivado_project`, `build`, or random container was generated.
+
+Reject a formal/public BAT that directly embeds an absolute `*.exe` or tool BAT file. The accepted pattern is a project-confirmed tool root/environment, process-local PATH setup, canonical command-name preflight, and invocation by name without global environment mutation.
 """

@@ -9,3 +9,5 @@ This repository is an installable Codex FPGA workflow, not an FPGA product desig
 - Run `scripts/validate-package.ps1` before submitting a change.
 - Documentation and examples must mark unexecuted checks as `NOT RUN` or `UNVERIFIED`.
 - Keep generated-project desktop runtime independent of Codex-private PowerShell. Formal native build state belongs in `project/par`, formal ModelSim/Questa state belongs in `simulation/work`, and Codex diagnostic copies belong in `codex_out`.
+- For normalized targets, require exactly one authoritative depth-0 launcher at `project/par/<project-name>.xpr`, `.pds`, or `.al`; do not hide a newly generated canonical project under `par/vivado_project`, `par/build`, or a random job directory.
+- Generated formal BAT runtime must configure only a tool root/vendor environment and invoke canonical command names through a process-local PATH; never publish one machine's absolute `vivado.bat`, `vsim.exe`, or other executable file path.

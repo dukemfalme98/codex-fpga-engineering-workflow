@@ -130,7 +130,7 @@ explain which project evidence you would read before reviewing an RTL change.
 Do not modify files.
 ```
 
-File verification is not the same as fresh-session discovery. Version 0.3.2 still labels fresh-session end-to-end discovery **UNVERIFIED** until exercised in a clean target environment.
+File verification is not the same as fresh-session discovery. Version 0.3.3 still labels fresh-session end-to-end discovery **UNVERIFIED** until exercised in a clean target environment.
 
 ## Create a standard FPGA project
 
@@ -144,7 +144,7 @@ pwsh -NoProfile -File .\scripts\new-fpga-project.ps1 `
   -Vendor XILINX
 ```
 
-Use `PANGO` or `ANLOGIC` for those targets. The scaffold emits one fail-closed native build adapter and one fail-closed native simulator adapter, and always uses canonical `project/`, `project/par/`, `project/script/`, `simulation/`, `linter/`, `release/`, and `codex_out/` directories. It never generates `project2`, `par2`, `script2`, or other numbered standard names. Add exactly one matching project file under `project/par`, confirm the exact tool/version/device/simulator/library facts, replace the native BAT placeholders with validated Tcl/DO/CLI recipes, then double-click the entry point. Generated-project runtime does not require Codex-bundled PowerShell. Formal build state stays in `project/par`, formal ModelSim/Questa state stays in `simulation/work`, and Codex diagnostics stay in `codex_out`.
+Use `PANGO` or `ANLOGIC` for those targets. The scaffold emits one fail-closed native build adapter and one fail-closed native simulator adapter, and always uses canonical unsuffixed directories. The real launcher must be a depth-0 `project/par/<project-name>.xpr|.pds|.al`, never a nested `par/vivado_project` or `par/build` project. Configure a tool root/vendor environment, use only a process-local PATH, and invoke canonical commands by name rather than embedding absolute executable files. Generated-project runtime does not require Codex-bundled PowerShell. Formal build state stays in `project/par`, formal ModelSim/Questa state stays in `simulation/work`, and Codex diagnostics stay in `codex_out`.
 
 ## Upgrade
 

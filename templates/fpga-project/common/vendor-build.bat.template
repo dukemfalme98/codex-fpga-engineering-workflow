@@ -4,4 +4,8 @@ echo TOOL_ENV_FAIL: the __VENDOR__ native build recipe is not configured.
 echo Confirm the exact tool, version, project, and part, then replace this file
 echo with the validated native Tcl or CLI adapter. Formal output belongs in:
 echo   %~2\project\par
+echo The real launcher must be a direct project-named file, not a nested
+echo project\par\vivado_project or project\par\build project.
+echo Configure a tool root/environment and call the vendor command by name;
+echo do not hard-code an absolute executable file in the formal adapter.
 exit /b 1

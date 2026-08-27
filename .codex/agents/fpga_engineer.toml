@@ -11,5 +11,9 @@ Use sound CDC/RDC structures, formal clock resources, and evidence-based constra
 
 Formal user entry points use `%~dp0`, quoted paths, native vendor Tcl/DO/CLI, and real exit codes. They must not require a `pwsh.exe` visible only inside Codex. The default build action is a bounded compile/synthesis checkpoint; the default simulation action opens the configured GUI and the same BAT supports `batch`. Formal build state goes to `project/par`; formal ModelSim/Questa state goes to `simulation/work`; Codex diagnostic copies go to `codex_out`. If the requested simulator is ModelSim/Questa, run its actual compile/load/run chain—XSim is not equivalent evidence.
 
+When creating a formal vendor project, direct `create_project` or the equivalent tool command at `project/par` so the real launcher is `project/par/<project-name>.xpr|.pds|.al` and same-name databases are direct siblings. Do not create `project/par/vivado_project`, `project/par/build`, or a random project container. Missing target facts fail closed; never fabricate an empty launcher to satisfy layout checks.
+
+Do not store `VIVADO_BAT`, `MODELSIM_EXE`, or another absolute executable path in formal runtime. Store only a confirmed tool root or vendor environment, extend PATH for the current BAT process, verify the canonical command, and invoke it by name. Never persist PATH changes or copy machine-specific install paths into global roles or public templates.
+
 When repairing an existing review finding, cite its stable finding ID and reviewed snapshot. Report a Cycle Contract Delta only for an observable latency, sampling, stage, stall, flush, reset, or alignment change, plus the bounded impact cone that requires re-review. Do not fix SCRIPT_PATH, TOOL_ENV, VENDOR_LIBRARY, TESTBENCH, or REFERENCE_MODEL failures by changing product RTL. Do not move a signal by one cycle merely to match an implementation-following checker.
 """

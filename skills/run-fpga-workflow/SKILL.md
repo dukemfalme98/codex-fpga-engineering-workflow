@@ -36,6 +36,10 @@ Use the templates in [workflow artifacts](references/workflow-artifacts.md). Do 
 
 Separate formal user tool state from Codex diagnostics. Formal vendor project databases, native logs, and reports belong in `project/par`; formal ModelSim/Questa export files, local work libraries, logs, and wave databases belong in `simulation/work`; release artifacts belong in `release`. Codex-created experiments, parallel diagnostic copies, indexes, temporary libraries, mutations, and review packets belong in `codex_out/<run-id>`. If the user asks Codex to validate the formal desktop entry point, execute that BAT serially and allow its native output directories; a direct inner command does not prove the BAT works.
 
+For newly generated or normalized targets, the canonical launcher is a depth-0 child of `project/par`: `project/par/<project-name>.xpr`, `.pds`, or `.al`. Same-name vendor databases are direct siblings. Do not wrap the formal launcher in `par/vivado_project`, `par/build`, or random job directories. Existing nested projects may remain as foreign import sources until normalization is requested; never create a fake launcher without confirmed target facts.
+
+Formal generated BAT runtime does not embed absolute tool executable files. Configure a project-confirmed tool root or vendor environment, extend only the current process PATH, verify canonical commands, and invoke `vivado`, `vsim`, `vlog`, `vlib`, `vmap`, or the confirmed Pango/Anlogic command by name. Never persist PATH changes or publish a machine-specific executable path.
+
 ## 3. Lead, bounded impact, and specialist routing
 
 The `fpga_architect` freezes the task, impact, and cycle contracts, Requirement -> Design -> Test traceability, ownership, and acceptance. Bound temporal review to one primary clock domain and one transaction/dataflow impact cone, including reverse `ready`/backpressure and aligned data, valid, last/keep, ID/tag, error, enable, reset, stall, flush, abort, FSM, counter, FIFO, and RAM state.

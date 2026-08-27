@@ -87,6 +87,7 @@ $target = [ordered]@{
     package = $Package
     simulation = @{ top = $SimulationTop; default_case = $DefaultSimulationCase; required_libraries = @() }
     selected_adapter = @{ build = 'project/script/vendor-build.bat'; simulation = 'simulation/script/vendor-sim.bat' }
+    canonical_project_file = "project/par/$ProjectName$($vendorSpec.Extension)"
     status = 'UNVERIFIED'
 }
 [IO.File]::WriteAllText((Join-Path $destinationFull 'project\target.fpga.json'), (($target | ConvertTo-Json -Depth 8) + [Environment]::NewLine), [Text.UTF8Encoding]::new($false))
@@ -97,5 +98,6 @@ $target = [ordered]@{
     vendor = $Vendor
     build_adapter = 'project/script/vendor-build.bat'
     simulation_adapter = 'simulation/script/vendor-sim.bat'
-    next_step = "Add exactly one $($vendorSpec.Extension) project file under project/par, replace the fail-closed native BAT adapters with confirmed Tcl/DO/CLI recipes, then double-click run.bat."
+    canonical_project_file = "project/par/$ProjectName$($vendorSpec.Extension)"
+    next_step = "Create the real depth-0 project/par/$ProjectName$($vendorSpec.Extension) with a confirmed native tool recipe, replace the fail-closed BAT adapters, then double-click run.bat. Do not add an extra project container under par."
 }

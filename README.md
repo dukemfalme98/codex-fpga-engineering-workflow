@@ -8,7 +8,7 @@
 
 [![Package validation](https://github.com/prasetyarobert205-jpg/codex-fpga-engineering-workflow/actions/workflows/validate.yml/badge.svg)](https://github.com/prasetyarobert205-jpg/codex-fpga-engineering-workflow/actions/workflows/validate.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-16a34a.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.3.2-2457c5.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.3-2457c5.svg)](CHANGELOG.md)
 [![PowerShell 7](https://img.shields.io/badge/PowerShell-7%2B-5391FE?logo=powershell&logoColor=white)](docs/en/installation.md)
 [![FPGA / SoC FPGA](https://img.shields.io/badge/FPGA%20%2F%20SoC%20FPGA-engineering-7c3aed.svg)](docs/en/architecture.md)
 
@@ -176,7 +176,7 @@ pwsh -NoProfile -File .\scripts\new-fpga-project.ps1 `
   -Vendor XILINX
 ```
 
-The scaffold always generates canonical `project/`, `project/par/`, and `project/script/` directories—never numbered variants such as `project2`, `par2`, or `script2`. Add the real vendor project file under `project/par`, confirm the exact device/tool/simulator/library facts, then replace the deliberately fail-closed `vendor-build.bat` and `vendor-sim.bat` placeholders with the validated native recipes. From then on the user can double-click:
+The scaffold always generates canonical `project/`, `project/par/`, and `project/script/` directories—never numbered variants such as `project2`, `par2`, or `script2`. The confirmed native adapter creates the real depth-0 launcher as `project/par/<project-name>.xpr`, `.pds`, or `.al`; no extra `par/vivado_project`, `par/build`, or random project container is accepted. Formal BAT files configure a tool root/environment, prepare only their process PATH, and invoke canonical commands such as `vivado` or `vsim` by name—no machine-specific executable path is embedded. Confirm the exact device/tool/simulator/library facts, then replace the deliberately fail-closed adapter placeholders with validated native recipes. From then on the user can double-click:
 
 - `project/script/run.bat` for compile/build;
 - `simulation/script/run.bat` for the configured GUI, or pass `batch` for automation;
@@ -265,7 +265,7 @@ Physical wiring, power-up, download, motion, heat, lasers, relays, high voltage,
 
 ## Current limitations
 
-Version `0.3.2` keeps the 13-role architecture and replaces generated-project PowerShell runtime wrappers with pure BAT plus fail-closed native adapter placeholders. It separates formal `project/par` and `simulation/work` state from `codex_out` diagnostics, requires actual ModelSim/Questa compile-load-run evidence when that simulator is claimed, and prevents compile failure from falling through into simulation. The shadow role is not a permanent blocking gate. Package validation does not prove every EDA toolflow; real vendor execution remains target-, version-, license-, and project-dependent. The repository contains no FPGA product, vendor installation, board constraints, customer data, or private fault documents and claims no synthesis, timing, CDC/RDC, bitstream, or board result for a user's design.
+Version `0.3.3` adds a strict depth-0 canonical launcher contract for `project/par/<project-name>.xpr|.pds|.al` and prohibits machine-specific absolute executable files in generated formal BAT runtime. Tool roots/environments are project facts; BAT modifies only its process PATH and invokes canonical commands by name. The 13-role architecture, proportionate evidence profiles, native `project/par` and `simulation/work` state, `codex_out` diagnostic isolation, and ModelSim/Questa compile-load-run integrity remain unchanged. Package validation does not prove every EDA toolflow; real vendor execution remains target-, version-, license-, and project-dependent.
 
 Custom-agent, skill, and plugin schemas can evolve. Pin a release and re-run the included validation and installation verification after Codex updates. See [COMPATIBILITY.md](COMPATIBILITY.md).
 

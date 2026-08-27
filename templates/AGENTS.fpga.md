@@ -42,6 +42,10 @@ When the user explicitly requests a minimal or narrowly scoped source edit, brie
 
 Generated-project desktop runtime uses `%~dp0`-anchored BAT plus confirmed vendor-native Tcl/DO/CLI and must not depend on Codex-private PowerShell. Formal build state belongs under `project/par`; formal ModelSim/Questa export, work libraries, logs, and waves belong under `simulation/work`; Codex-created experiments, mutations, indexes, and review packets belong under `codex_out`. When validating a one-click entry point, execute its BAT serially rather than bypassing it. ModelSim/Questa claims require actual compile, load/elaboration, and run evidence; compile failure must prevent load/run.
 
+For a newly generated or normalized target, require one real launcher directly at `project/par/<project-name>.xpr`, `.pds`, or `.al`, with same-name vendor databases beside it. Do not generate an extra `par/vivado_project`, `par/build`, or random project container. Foreign nested layouts remain import sources until normalization is requested; never fabricate an empty launcher.
+
+Formal BAT runtime configures a tool root or vendor environment, modifies only its current process PATH, verifies canonical command names, and invokes them by name. Do not embed or publish absolute executable file paths.
+
 Classify DUT, testbench, model, assertion, script-path, compile/elaboration, tool, vendor-library, and timeout failures before changing RTL. Automatic repair/re-review is limited to three rounds; two consecutive no-progress rounds stop blind editing.
 
 ## Multi-role ownership and sign-off

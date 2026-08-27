@@ -9,3 +9,5 @@
 - Keep visible `script/` roots clean. Generated-project runtime uses `%~dp0`-anchored BAT plus confirmed native Tcl/DO/CLI and must not require Codex-private PowerShell.
 - Run only project-confirmed commands. Unexecuted checks are `NOT RUN`; missing or unread evidence is `UNVERIFIED`.
 - Keep smoke compile/elaborate/run evidence lightweight and label it `DIAGNOSTIC_ONLY`; activate full simulation, formal, CDC/STA, or release gates only for claims that depend on them.
+- When this scaffold becomes a formal target, create one real depth-0 launcher at `project/par/__PROJECT_NAME__.xpr`, `.pds`, or `.al`. Do not place it below `par/vivado_project`, `par/build`, or a random job directory, and do not fabricate a marker before target facts are confirmed.
+- Configure a tool root or vendor environment and invoke canonical commands through the BAT process PATH. Do not hard-code absolute executable files or persist PATH changes.

@@ -2,6 +2,20 @@
 
 All notable changes follow Keep a Changelog. Versions follow Semantic Versioning.
 
+## [0.3.3] - 2026-08-27
+
+### Changed
+
+- Required normalized vendor launchers to be depth-0 files at `project/par/<project-name>.xpr`, `.pds`, or `.al`, with same-name vendor databases as direct siblings.
+- Rejected newly generated `par/vivado_project`, `par/build`, and random project containers as canonical output while preserving foreign nested projects as import sources until normalization is requested.
+- Removed machine-specific absolute executable files from the formal runtime contract. Generated BAT adapters now configure a tool root or vendor environment, modify only their process PATH, verify canonical commands, and invoke them by name.
+- Updated architecture, implementation, vendor-platform, and final-review gates plus scaffold metadata and public documentation.
+
+### Validation
+
+- Confirmed a Vivado 2020.2 canary creates `project/par/direct_par_canary.xpr` at depth 0 with direct sibling native databases.
+- Confirmed scaffold metadata reports the exact canonical launcher path without fabricating an empty project marker.
+
 ## [0.3.2] - 2026-08-27
 
 ### Changed

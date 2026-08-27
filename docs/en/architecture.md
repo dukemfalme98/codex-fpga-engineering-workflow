@@ -129,6 +129,7 @@ If project evidence conflicts with a remembered pattern, the project evidence wi
 - Formal vendor build state uses `project/par`; formal ModelSim/Questa state uses `simulation/work`; Codex-created diagnostics and review packets use project-root `codex_out`.
 - Generated standard directories are canonical: `project/`, `project/par/`, `project/script/`, `simulation/`, `linter/`, `release/`, and `codex_out/`; numbered variants are not generated.
 - Generated-project desktop entry points use `%~dp0`-anchored BAT plus confirmed native Tcl/DO/CLI and do not depend on Codex-private PowerShell.
+- Normalized vendor launchers are depth-0 files under `project/par`, and formal BAT runtime invokes canonical tool commands through a process-local PATH rather than embedding absolute executable files.
 - Automatic repair stops after three rounds or two consecutive no-progress rounds.
 
 ## Stable artifacts and shadow evidence
