@@ -1,6 +1,6 @@
 # Architecture
 
-[README](../../README.md) · [Roles](roles.md) · [Installation](installation.md) · [Usage](usage.md) · [Safety and evidence](safety-and-evidence.md)
+[README](../../README.md) · [Simplified Chinese](../zh-CN/architecture.md) · [Roles](roles.md) · [Installation](installation.md) · [Usage](usage.md) · [Safety and evidence](safety-and-evidence.md)
 
 ## Design goal
 
@@ -24,6 +24,26 @@ The main Codex conversation is the control plane. It does not replace the specia
 10. report the achieved evidence level, missing checks, remaining risks, and user-only board actions.
 
 `fpga_architect` is the technical lead. It converts requirements and project facts into one implementation contract. The conversation coordinator remains responsible for authorization, role scheduling, and enforcement of the lifecycle.
+
+## Project identity and live task delta
+
+A short identity card may provide the stable project root, canonical launcher,
+vendor, tool/version, part, product/simulation tops, formal entry points, and
+long-term protected boundaries. Those values reduce repeated discovery; they
+do not grant writes, clean/overwrite, IP regeneration, implementation, release,
+publishing, or physical board actions.
+
+Each substantive follow-up produces a live task delta:
+
+```text
+INITIAL | SUPPLEMENTS | SUPERSEDES | EXPANDS | NARROWS
+```
+
+The coordinator keeps identity, current task, authorization, sticky protected
+work, requested claim, claim stage, and source snapshot separate. Ordinary
+follow-ups refresh only the affected diff, cone, tests, constraints, IP, and
+evidence. Identity is refreshed only when the project root, canonical launcher,
+part, top, tool/version, target view, or claim stage materially changes.
 
 ## End-to-end lifecycle
 
@@ -95,6 +115,13 @@ The `fpga_reviewer` reviews the final integrated diff and actual evidence. It mu
 - edit product or test sources;
 - repair its own findings; or
 - accept self-reported evidence without inspecting the relevant files and reports.
+
+It is an integrated signer, not a second complete implementation of every
+specialist review. Fresh specialist evidence is checked for snapshot identity,
+consistency, blocking findings, and claim boundaries; the reviewer samples the
+highest risks rather than rescanning the full RTL/CDC/IP/simulation/P&R
+repository. Missing, stale, or contradictory required evidence is returned to
+the responsible specialist.
 
 Repairs return to the appropriate sequential writer, followed by affected specialist re-review and a fresh final review. Cross-domain or safety-critical releases add `independent_reviewer` after the FPGA final review.
 

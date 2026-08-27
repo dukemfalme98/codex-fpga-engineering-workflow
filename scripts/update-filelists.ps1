@@ -17,6 +17,7 @@ function Test-Excluded([string]$Path) {
     return [bool]($relative.Split('/', [StringSplitOptions]::RemoveEmptyEntries) | Where-Object { $_ -in $excluded -or $_.EndsWith('.runs', [StringComparison]::OrdinalIgnoreCase) -or $_.EndsWith('.cache', [StringComparison]::OrdinalIgnoreCase) } | Select-Object -First 1)
 }
 function Get-Relative([string]$Path) { ([IO.Path]::GetRelativePath($root, $Path) -replace '\\', '/') }
+function Get-ListRelative([string]$Base, [string]$Path) { ([IO.Path]::GetRelativePath($Base, $Path) -replace '\\', '/') }
 function Get-Files([string[]]$Roots, [string[]]$Extensions) {
     $files = foreach ($base in $Roots) {
         if (Test-Path -LiteralPath $base -PathType Container) {
@@ -125,8 +126,7 @@ if ($unclassified.Count -gt 0) { throw "Root-level project/ip HDL must match a v
 $productRaw = @(Get-Files -Roots @($rtlRoot, $synthIpRoot) -Extensions $hdl) + @($rootSynth)
 $modelsRaw = @(Get-Files -Roots @($simIpRoot) -Extensions $hdl) + @($rootModels)
 $testbenchRaw = @(Get-Files -Roots @($tbRoot) -Extensions $hdl)
-$product = @(Resolve-CompileOrder -Files $productRaw -OrderPath (Join-Path $root 'project\script\compile_order.txt') -Label 'Product')
-$simulationExtra = @(Resolve-CompileOrder -Files @($modelsRaw + $testbenchRaw) -OrderPath (Join-Path $root 'simulation\script\compile_order.txt') -Label 'Simulation model/testbench')
+$product = @(Resolve-CompileOrder -Files $productRaw -OrderPath (Join-Path $root 'document\source-order.txt') -Label 'Product')
 Assert-NoDuplicateUnits -Files $product
 $modelUnits = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 foreach ($model in $modelsRaw) { foreach ($unit in Get-DesignUnitNames -File $model) { [void]$modelUnits.Add($unit) } }
@@ -137,34 +137,30 @@ foreach ($file in $product) {
     if ($overlap.Count -eq 0) { $simulationProduct.Add($file); continue }
     if ($overlap.Count -ne $units.Count) { throw "Simulation model partially replaces design units in $(Get-Relative $file.FullName); split the file or provide an explicit model boundary." }
 }
-Assert-NoDuplicateUnits -Files @($simulationProduct + $modelsRaw + $testbenchRaw)
+$simulationRaw = @($simulationProduct + $modelsRaw + $testbenchRaw)
+$simulation = @(Resolve-CompileOrder -Files $simulationRaw -OrderPath (Join-Path $root 'document\simulation-source-order.txt') -Label 'Simulation')
+Assert-NoDuplicateUnits -Files $simulation
 
 $projectHeaders = @(Get-Files -Roots @($rtlRoot, $synthIpRoot) -Extensions $headers)
 $simulationHeaders = @(Get-Files -Roots @($rtlRoot, $synthIpRoot, $simIpRoot, $tbRoot) -Extensions $headers)
 $projectIncludes = @($projectHeaders | ForEach-Object { Get-Relative $_.Directory.FullName } | Sort-Object -Unique)
 $simulationIncludes = @($simulationHeaders | ForEach-Object { Get-Relative $_.Directory.FullName } | Sort-Object -Unique)
-$modelSet = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
-foreach ($model in $modelsRaw) { [void]$modelSet.Add($model.FullName) }
-$orderedModels = @($simulationExtra | Where-Object { $modelSet.Contains($_.FullName) })
-$orderedTestbench = @($simulationExtra | Where-Object { -not $modelSet.Contains($_.FullName) })
+$projectListBase = Join-Path $root 'project\par'
+$simulationListBase = Join-Path $root 'simulation\work'
+$projectLines = @($projectIncludes | ForEach-Object { "+incdir+$(Get-ListRelative $projectListBase (Join-Path $root ($_ -replace '/', [IO.Path]::DirectorySeparatorChar)))" }) + @($product | ForEach-Object { Get-ListRelative $projectListBase $_.FullName }) + @($ipConfigs | ForEach-Object { Get-ListRelative $projectListBase $_.FullName })
+$simulationLines = @($simulationIncludes | ForEach-Object { "+incdir+$(Get-ListRelative $simulationListBase (Join-Path $root ($_ -replace '/', [IO.Path]::DirectorySeparatorChar)))" }) + @($simulation | ForEach-Object { Get-ListRelative $simulationListBase $_.FullName })
 
 $changes = [ordered]@{}
-$changes.product_sources = Write-StableList (Join-Path $root 'project\script\src_list.txt') @($product | ForEach-Object { Get-Relative $_.FullName })
-$changes.vendor_ip = Write-StableList (Join-Path $root 'project\script\ip_list.txt') @($ipConfigs | ForEach-Object { Get-Relative $_.FullName })
-$changes.project_includes = Write-StableList (Join-Path $root 'project\script\include_dirs.txt') $projectIncludes
-$changes.testbench_sources = Write-StableList (Join-Path $root 'simulation\script\src_list.txt') @($orderedTestbench | ForEach-Object { Get-Relative $_.FullName })
-$changes.simulation_product = Write-StableList (Join-Path $root 'simulation\script\product_list.txt') @($simulationProduct | ForEach-Object { Get-Relative $_.FullName })
-$changes.simulation_models = Write-StableList (Join-Path $root 'simulation\script\model_list.txt') @($orderedModels | ForEach-Object { Get-Relative $_.FullName })
-$changes.simulation_ip = Write-StableList (Join-Path $root 'simulation\script\ip_list.txt') @($ipConfigs | ForEach-Object { Get-Relative $_.FullName })
-$changes.simulation_includes = Write-StableList (Join-Path $root 'simulation\script\include_dirs.txt') $simulationIncludes
+$changes.project_sources = Write-StableList (Join-Path $root 'project\script\src_list.txt') $projectLines
+$changes.simulation_sources = Write-StableList (Join-Path $root 'simulation\script\src_list.txt') $simulationLines
 $changes.lint_sources = Write-StableList (Join-Path $root 'linter\script\lint_list.txt') @($product | ForEach-Object { Get-Relative $_.FullName })
 
 [pscustomobject]@{
     status = 'UPDATED'
     vendor = $Vendor
     product_source_count = $product.Count
-    testbench_source_count = $orderedTestbench.Count
-    simulation_model_count = $orderedModels.Count
+    testbench_source_count = $testbenchRaw.Count
+    simulation_model_count = $modelsRaw.Count
     vendor_ip_count = $ipConfigs.Count
     lint_source_count = $product.Count
     changed = $changes

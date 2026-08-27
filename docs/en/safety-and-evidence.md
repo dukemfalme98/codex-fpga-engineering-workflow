@@ -1,6 +1,6 @@
 # Safety and evidence
 
-[README](../../README.md) · [Architecture](architecture.md) · [Roles](roles.md) · [Installation](installation.md) · [Usage](usage.md)
+[README](../../README.md) · [Simplified Chinese](../zh-CN/safety-and-evidence.md) · [Architecture](architecture.md) · [Roles](roles.md) · [Installation](installation.md) · [Usage](usage.md)
 
 The workflow separates engineering evidence by level. “Tested” is not a sufficient claim unless the test, target, tool, result, and remaining gaps are clear. A higher level may depend on lower levels, but passing one level never automatically proves another.
 
@@ -28,6 +28,7 @@ The evidence chain should preserve identity: source revision/diff, target, param
 `DIAGNOSTIC_SMOKE` is for source discovery, compile, elaboration, bounded execution, and path/tool diagnosis. It needs enough information to reproduce the command and understand warnings or failure ownership. It does not require an independent reference model, a full scoreboard, or a negative canary, and it cannot establish `SIMULATION_PASS`.
 
 `FUNCTIONAL_ACCEPTANCE` activates the complete simulation-evidence chain because the run is being used to accept DUT behavior. `SPECIALIST_ACCEPTANCE` activates the relevant formal, CDC/RDC, implementation/STA, electrical, or release evidence only when that claim is requested. Evidence that is irrelevant to the scoped claim may remain `NOT RUN` without making a diagnostic task fail.
+Qualify each profile with one claim stage: PREFLIGHT, COMPILE, SIM_SMOKE, FUNCTIONAL_SIM, SYNTHESIS, IMPLEMENTATION_QOR, TIMING_CLOSURE, FORMAL, RELEASE, or BOARD_PREP. A stage limits what the result claims; it does not weaken hard ownership, safety, or evidence-integrity rules. Power is NOT APPLICABLE by default. Activate power evidence only for an explicit request or actual power, thermal, safety, or release budget, and state activity provenance when used.
 
 ## Required claim language
 

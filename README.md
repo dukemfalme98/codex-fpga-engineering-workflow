@@ -1,5 +1,7 @@
 # Codex FPGA Engineering Workflow
 
+[English](README.md) | [Simplified Chinese](README.zh-CN.md)
+
 <div align="center">
 
 ![Codex FPGA Engineering Workflow](assets/hero.svg)
@@ -8,13 +10,13 @@
 
 [![Package validation](https://github.com/prasetyarobert205-jpg/codex-fpga-engineering-workflow/actions/workflows/validate.yml/badge.svg)](https://github.com/prasetyarobert205-jpg/codex-fpga-engineering-workflow/actions/workflows/validate.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-16a34a.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.3.3-2457c5.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.4.0-2457c5.svg)](CHANGELOG.md)
 [![PowerShell 7](https://img.shields.io/badge/PowerShell-7%2B-5391FE?logo=powershell&logoColor=white)](docs/en/installation.md)
 [![FPGA / SoC FPGA](https://img.shields.io/badge/FPGA%20%2F%20SoC%20FPGA-engineering-7c3aed.svg)](docs/en/architecture.md)
 
-**13 focused roles · One product writer · Cycle-accurate review · One-click project scripts · Honest evidence boundaries**
+**13 focused roles · Live project/task contracts · Official IP workflow · Evidence-triggered P&R · One product writer · Honest sign-off**
 
-[Quick start](#60-second-quick-start) · [Architecture](docs/en/architecture.md) · [Roles](docs/en/roles.md) · [Usage](docs/en/usage.md) · [Safety and evidence](docs/en/safety-and-evidence.md)
+[Quick start](#60-second-quick-start) · [Architecture](docs/en/architecture.md) · [Roles](docs/en/roles.md) · [Usage](docs/en/usage.md) · [Safety and evidence](docs/en/safety-and-evidence.md) · [Chinese docs](docs/zh-CN/README.md)
 
 </div>
 
@@ -31,11 +33,14 @@ FPGA failures rarely live in one file. A small RTL change can affect latency, ba
 This workflow makes the engineering boundaries explicit:
 
 - **Project evidence stays authoritative.** Device, pin, voltage, clock, reset, register, tool, and acceptance facts come from the project SSOT—not an agent's memory.
+- **Project identity stays stable while tasks remain live.** A short identity card avoids rediscovery; each follow-up updates task scope and authorization without silently removing protected boundaries.
 - **One writer owns product sources.** Specialists may analyze in parallel, but they do not race to edit the same checkout.
 - **Reviews use stable snapshots.** Long implementations pause at coherent checkpoints, freeze a diff/hash, collect critical findings, and return one repair list to the same writer.
 - **Review independence is preserved.** The final reviewer does not coach the implementation or repair its own findings.
 - **Evidence levels remain separate.** Source review, simulation, formal proof, CDC/RDC, synthesis, implementation STA, instrument measurements, and board results are not interchangeable.
 - **Vendor details stay at the platform boundary.** Portable product logic is separated from primitives, IP, pins, clocks, transceivers, constraints, and target wrappers.
+- **Official IP has a real owner and proof path.** Reuse managed IP, regenerate incrementally, stage/import legacy configs safely, prefer installed official Tcl/CLI, and use GUI automation only once when necessary.
+- **Physical implementation starts from evidence.** QoR/timing work freezes a baseline, classifies actual paths, changes one primary variable, and keeps or reverts from report comparison.
 - **Temporal claims follow real clock edges.** High-risk synchronous changes are reviewed from pre-edge state through RHS/NBA behavior to the next sampling edge.
 - **Process stays proportionate.** Diagnostic compile/elaborate/run jobs stay lightweight; full models, scoreboards, canaries, and independent acceptance are required only for claims that depend on them.
 - **Simulation cannot grade itself.** Verification authors build tests; a separate read-only reviewer audits evidence used for functional acceptance.
@@ -67,7 +72,7 @@ For repository-local installation, use `-Scope Project -ProjectPath C:\path\to\r
 
 ```mermaid
 flowchart TD
-    A[User authorization + project AGENTS / SSOT] --> B[Conversation coordinator]
+    A[Project identity + live task delta + authorization] --> B[Conversation coordinator]
     B --> C[fpga_architect lead]
     C --> D1[Verification pre-review]
     C --> D2[CDC / timing review]
@@ -108,7 +113,7 @@ Recommended checkpoints include the interface skeleton, FSM and error recovery, 
 | Role | Primary responsibility | Permission model |
 |---|---|---|
 | `fpga_architect` | Requirements, microarchitecture, data flow, performance budgets, ownership, and acceptance criteria | Strictly read-only |
-| `fpga_engineer` | Minimal synthesizable changes to RTL, constraints, platform wrappers, regmap implementation, and FPGA build scripts | Sole default product-source writer |
+| `fpga_engineer` | One mode per batch: RTL, official IP integration, build flow, physical implementation, or release packaging | Sole default product-source writer |
 | `verification_engineer` | Test strategy, testbench, assertions, reference models, coverage, and regression evidence | Product read-only; test assets only in a separate sequential batch |
 | `fpga_temporal_evidence_reviewer` | Shadow review of bounded cycle behavior and independent simulation-evidence integrity | Strictly read-only; no repair coaching, CDC/STA substitution, or final sign-off |
 | `fpga_cdc_timing_reviewer` | Clocks, resets, CDC/RDC, constraints, exceptions, I/O timing, and STA evidence | Strictly read-only |
@@ -142,6 +147,8 @@ Risk never expands write authorization. A crossing, published interface, externa
 - Audit a false simulation pass using cycle-indexed scoreboards, Model Cards, negative canaries, and selected proof windows.
 - Scaffold a clean standard project whose build, simulation, and lint entry points are all double-clickable `run.bat` files.
 - Audit combinational depth, cascaded priority/MUX logic, fanout, and critical paths using actual synthesis/implementation evidence.
+- Add or repair official vendor IP without copying online configuration files or leaking output products across checkouts.
+- Move from synthesis to implementation QoR or timing closure only when the requested claim and reports justify it.
 - Build a requirement-to-design-to-test trace for a risky refactor.
 - Prepare a safe board-validation procedure while keeping physical actions under qualified human control.
 - Review a release claim and identify exactly which evidence is present, missing, stale, or target-specific.
@@ -176,13 +183,13 @@ pwsh -NoProfile -File .\scripts\new-fpga-project.ps1 `
   -Vendor XILINX
 ```
 
-The scaffold always generates canonical `project/`, `project/par/`, and `project/script/` directories—never numbered variants such as `project2`, `par2`, or `script2`. The confirmed native adapter creates the real depth-0 launcher as `project/par/<project-name>.xpr`, `.pds`, or `.al`; no extra `par/vivado_project`, `par/build`, or random project container is accepted. Formal BAT files configure a tool root/environment, prepare only their process PATH, and invoke canonical commands such as `vivado` or `vsim` by name—no machine-specific executable path is embedded. Confirm the exact device/tool/simulator/library facts, then replace the deliberately fail-closed adapter placeholders with validated native recipes. From then on the user can double-click:
+The scaffold always generates canonical `project/`, `project/par/`, and `project/script/` directories—never numbered variants such as `project2`, `par2`, or `script2`. It records stable project identity separately from live task scope. The confirmed native flow creates the real depth-0 launcher as `project/par/<project-name>.xpr`, `.pds`, or `.al`; no extra `par/vivado_project`, `par/build`, or random project container is accepted. Formal BAT files configure a tool root/environment, prepare only their process PATH, and invoke canonical commands such as `vivado` or `vsim` by name. The generated build and simulation entries fail closed until the exact native Tcl/CLI, simulator, official IP export, and library recipe are confirmed. From then on the user can double-click:
 
 - `project/script/run.bat` for compile/build;
 - `simulation/script/run.bat` for the configured GUI, or pass `batch` for automation;
 - `linter/script/run.bat` for lint.
 
-Each wrapper anchors itself with `%~dp0`, invokes only one confirmed native adapter, preserves the real exit code, and prints a truthful result. Formal vendor build state stays under `project/par`; formal ModelSim/Questa export, work libraries, logs, and waves stay under `simulation/work`; Codex-created experiments remain under `codex_out`. A successful smoke run is `DIAGNOSTIC_ONLY`, not a functional `SIMULATION_PASS`. Dependency-sensitive packages and VHDL require an exported `compile_order.txt`; arbitrary vendor order is never guessed. Xilinx (`.xpr`/`.xci`), Pango (`.pds`/`.idf`), and Anlogic (`.al` plus marked `.ipc`) are supported. Conflicts, other vendors, missing official libraries, or unconfigured commands fail closed as `UNVERIFIED`.
+Each wrapper anchors itself with `%~dp0`, enters the formal output directory, invokes one confirmed native flow, preserves the real exit code, and prints a truthful result. Formal vendor build state stays under `project/par`; formal ModelSim/Questa export, work libraries, logs, and waves stay under `simulation/work`; Codex-created experiments remain under `codex_out`. A successful smoke run is `DIAGNOSTIC_ONLY`, not a functional `SIMULATION_PASS`. Dependency-sensitive packages and VHDL require an optional authoritative order file under `document/`; arbitrary vendor order is never guessed. Xilinx (`.xpr`/`.xci`), Pango (`.pds`/`.idf`), and Anlogic (`.al` plus marked `.ipc`) are supported. Conflicts, other vendors, missing official libraries, or unconfigured commands fail closed as `UNVERIFIED`.
 
 The generated standard structure is intentionally small:
 
@@ -197,11 +204,11 @@ The generated standard structure is intentionally small:
 |   |-- ip/                  optional
 |   |-- sdc/
 |   |-- par/
-|   `-- script/              run.bat, setting.bat, lists, native adapter
+|   `-- script/              run.bat, setting.bat, src_list.txt, one vendor Tcl/CLI
 |-- simulation/
 |   |-- tb/case/
 |   |-- work/                generated formal simulator state
-|   `-- script/              run.bat, cases/lists, native DO/Tcl adapter
+|   `-- script/              run.bat, setting.txt, src_list.txt, vsim.do
 |-- linter/
 |   |-- lint_bb/             optional
 |   `-- script/              run.bat, lint_list.txt
@@ -228,7 +235,8 @@ skills/run-fpga-workflow/           Orchestration skill, schemas, and reference 
 templates/AGENTS.fpga.md             Optional project/user engineering rules
 templates/fpga-project/              Clean standard-project scaffold and one-adapter templates
 examples/*.prompt.md                Copyable ANALYZE, QUICK, and FULL prompts
-docs/en/                            Architecture, roles, installation, usage, safety
+docs/en/                            English architecture, roles, installation, usage, safety
+docs/zh-CN/                         Simplified Chinese documentation
 scripts/                            Install/validate plus scaffold, vendor, file-list, preflight, and private-library helpers
 .github/                            Validation workflow and contribution templates
 ```
@@ -259,13 +267,14 @@ Physical wiring, power-up, download, motion, heat, lasers, relays, high voltage,
 | [Installation](docs/en/installation.md) | Prerequisites, preview, user/project scope, backups, upgrade, verification, and uninstall |
 | [Usage](docs/en/usage.md) | Mode selection, copyable prompts, checkpoints, and expected reports |
 | [Safety and evidence](docs/en/safety-and-evidence.md) | Evidence ladder, claim boundaries, and high-energy user-action gates |
+| [Simplified Chinese documentation](docs/zh-CN/README.md) | Chinese navigation for architecture, roles, installation, usage, and evidence boundaries |
 | [Compatibility](COMPATIBILITY.md) | Exercised package environment and schema caveats |
 | [Research record](docs/research.md) | Dated ecosystem comparison and adoption rationale |
 | [Changelog](CHANGELOG.md) | Release history |
 
 ## Current limitations
 
-Version `0.3.3` adds a strict depth-0 canonical launcher contract for `project/par/<project-name>.xpr|.pds|.al` and prohibits machine-specific absolute executable files in generated formal BAT runtime. Tool roots/environments are project facts; BAT modifies only its process PATH and invokes canonical commands by name. The 13-role architecture, proportionate evidence profiles, native `project/par` and `simulation/work` state, `codex_out` diagnostic isolation, and ModelSim/Questa compile-load-run integrity remain unchanged. Package validation does not prove every EDA toolflow; real vendor execution remains target-, version-, license-, and project-dependent.
+Version `0.4.0` adds stable project identity plus live task deltas, claim stages, five product-writer modes, official IP proof packets, evidence-triggered physical implementation, a narrower integrated final review, a clean four-file simulation script root, and English/Chinese documentation. Power remains off by default. Package validation checks structure and policy; it does not prove every EDA toolflow, DUT function, CDC/STA result, bitstream, or board.
 
 Custom-agent, skill, and plugin schemas can evolve. Pin a release and re-run the included validation and installation verification after Codex updates. See [COMPATIBILITY.md](COMPATIBILITY.md).
 

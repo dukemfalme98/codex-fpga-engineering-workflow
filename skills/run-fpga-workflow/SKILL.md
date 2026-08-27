@@ -20,6 +20,7 @@ Do not use QUICK for clock/reset crossings, published interfaces, observable lat
 ## 2. Establish one evidence baseline
 
 Read applicable `AGENTS.md` files, requirements, project SSOT, interface/register sources, RTL, constraints, tests, scripts, installed tool versions, current reports, and the current diff. Protect user work. Label facts `CONFIRMED`, `INFERRED`, or `UNKNOWN`. Never invent device/package, pin, voltage, clock/reset, address, protocol, IP configuration, vendor command, or result.
+When an identity card or project-local identity block exists, read [project identity and live task delta](references/project-identity-and-task-delta.md). Normalize stable `project_identity` separately from the latest `current_task/task_delta`, authorization, sticky protected work, requested claim, and claim stage. An ordinary follow-up refreshes only the affected snapshot and cone; it does not repeat machine-wide discovery or silently retain stale task goals.
 
 Create only the artifacts needed to support the requested claim under `codex_out/<run-id>/`. A small diagnostic or smoke run may need only a command/result record; a functional, timing, CDC, formal, or release acceptance claim needs the applicable stable artifacts:
 
@@ -28,6 +29,7 @@ Create only the artifacts needed to support the requested claim under `codex_out
 - `impact-manifest.json`: affected modules/processes, clock/reset domains, forward data, reverse backpressure, sidebands, shared state, constraints, and tests;
 - `cycle-contract.json`: accepted/completed edges, latency or window, throughput, alignment, stall, reset, flush, abort, and error behavior;
 - `verification-plan.json`: Requirement -> Test -> Checker -> Cover and model independence;
+- `ip-proof-packet.json`: official IP identity, generation method, configuration ownership, contracts, products, constraints, simulation, OOC, and reopen evidence;
 - `run-manifest.json`: exact command, cwd, tool/version, target, seed, exits, libraries, logs, waves, and reports;
 - `simulation-evidence.json`: cycle-indexed expected/observed behavior, first failure, checker drain, negative canaries, and proof packets;
 - `findings-ledger.json`: stable IDs, snapshot, owner, status, evidence, repair, and reruns.
@@ -61,6 +63,7 @@ The temporal reviewer is the 13th role and is initially `SHADOW`: it is strictly
 ## 4. Single-writer implementation
 
 Skip in ANALYZE. In one checkout, only `fpga_engineer` writes product RTL, constraints, platform wrappers, regmap implementation, or FPGA build scripts. Freeze and summarize its diff when done. If required, run `embedded_engineer` later as a firmware-only batch, then `verification_engineer` as a test-asset-only batch. No overlapping writers in one checkout.
+Route that writer in exactly one primary mode per batch: `RTL_IMPLEMENTATION`, `IP_INTEGRATION`, `BUILD_FLOW`, `PHYSICAL_IMPLEMENTATION`, or `RELEASE_PACKAGING`. After one coherent module/cone/IP/domain/toolflow slice, freeze a diff/hash checkpoint, run only relevant read-only reviewers against that snapshot, merge one findings ledger, and return stable IDs to the writer. Read [official IP integration](references/ip-integration.md) for IP work and [evidence-triggered physical implementation](references/physical-implementation.md) only for implementation-QoR or timing-closure work.
 
 Repairs that answer existing review findings cite their stable IDs. Report a Cycle Contract Delta and affected cone only when observable cycle behavior changes. Verification authors cannot independently sign evidence produced by models/checkers they created or changed. Reviewers never edit findings away.
 
@@ -70,7 +73,8 @@ For long/high-risk work, use stable checkpoints: stop the writer after a coheren
 
 ## 5. Deterministic project toolflow
 
-Generated and formally normalized projects use the exact canonical directories `project/`, `project/par/`, `project/script/`, `simulation/`, `linter/`, `release/`, and `codex_out/` as described in [project layout](references/project-layout.md). Never generate numbered standard directories such as `project2`, `par2`, or `script2`. Existing foreign projects may be inspected or imported, but normalized output uses the canonical names. Keep visible `script/` directories clean: `run.bat`, `setting.bat`, canonical lists, and confirmed vendor Tcl/DO files stay at their roots. The formal user desktop runtime uses BAT plus vendor-native Tcl/DO/CLI and must not depend on a `pwsh.exe` visible only inside Codex. Package installation, Codex-side scanning, and scaffolding may still use PowerShell internally.
+Generated and formally normalized projects use the exact canonical directories `project/`, `project/par/`, `project/script/`, `simulation/`, `linter/`, `release/`, and `codex_out/` as described in [project layout](references/project-layout.md). Never generate numbered standard directories such as `project2`, `par2`, or `script2`. Existing foreign projects may be inspected or imported, but normalized output uses the canonical names. Keep visible script roots as entry-point surfaces: `project/script` contains the BAT, project setting, canonical source list, and one confirmed vendor Tcl/CLI flow; normalized `simulation/script` contains exactly `run.bat`, `setting.txt`, `src_list.txt`, and `vsim.do`. Generated exports, `modelsim.ini`, `.Xil`, libraries, logs, and waves stay under `simulation/work`. The formal user desktop runtime uses BAT plus vendor-native Tcl/DO/CLI and must not depend on a `pwsh.exe` visible only inside Codex. Package installation, Codex-side scanning, and scaffolding may still use PowerShell internally.
+Treat copied or legacy XCI/IDF/IPC files as untrusted output-path carriers. Before generation, prove that the source view belongs to the current checkout; otherwise stage/import under the current project output or recreate through the installed same-version official tool. After Xilinx export, inspect actual compile order, defines, and include directories. A canonical `vsim.do` may recompile project RTL/TB with a confirmed missing define only after official IP models compile; approximate IP models remain prohibited.
 
 Automatic vendor selection supports only:
 
@@ -94,6 +98,7 @@ Choose the profile from the claim, not from a desire to maximize process:
 - `SPECIALIST_ACCEPTANCE`: activate only the evidence family being claimed—formal, CDC/RDC, implementation/STA, electrical, or release—and keep all other evidence levels `NOT RUN` or `UNVERIFIED`.
 
 The hard gates remain constant: one writer per checkout, no author self-signing their changed acceptance assets, no fabricated evidence, no weakening CDC/electrical safety, and failure routing to the correct owner.
+Keep these three profiles and qualify the current claim with one `claim_stage`: `PREFLIGHT`, `COMPILE`, `SIM_SMOKE`, `FUNCTIONAL_SIM`, `SYNTHESIS`, `IMPLEMENTATION_QOR`, `TIMING_CLOSURE`, `FORMAL`, `RELEASE`, or `BOARD_PREP`. Do not create a competing profile system. Power is `NOT APPLICABLE` by default unless an explicit request or real power, thermal, safety, or release budget activates it.
 
 ## 7. Simulation evidence integrity
 
@@ -114,6 +119,7 @@ Use stable finding IDs and these statuses: `OPEN`, `FIXED_PENDING_REVIEW`, `VERI
 Allow at most three automatic repair/re-review rounds. At the first no-progress round, stop blind editing and rebuild the root cause with the architect and affected specialists. At two consecutive no-progress rounds, or after round three with an open BLOCKER/HIGH, stop and report the evidence boundary. Progress means fewer open BLOCKER/HIGH findings, a later first-failure point, an explainable changed failure signature, or added required evidence—not rewording or unrelated diffs.
 
 After all write batches, re-run only affected specialists read-only against the same integrated snapshot. Then invoke separate `fpga_reviewer` when an implemented change or acceptance verdict requires it; add `independent_reviewer` for cross-domain or safety-critical releases. When formal verification is actually used for acceptance, `fpga_reviewer` independently audits the property/harness identity, assumptions, bounds/depth, vacuity and cover evidence, counterexamples, abstractions/black boxes, tool command/version, and author independence. Do not add a formal gate when formal evidence is not part of the requested claim. Shadow findings are specialist input and must be resolved by evidence, not automatically promoted or ignored. Missing critical evidence, failed regressions, disputed blocking findings, or open BLOCKER/HIGH prevents unconditional completion.
+The final reviewer integrates the task contract, claim stage, snapshot identity, specialist reports, open blocking findings, conflicts, and claim boundaries. It samples the highest risks but does not repeat every specialist's complete traversal. Missing, stale, or contradictory required evidence routes back to the owning specialist; untriggered domains do not fail compile/smoke.
 
 ## 9. Private fault-library hook and improvement
 

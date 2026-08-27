@@ -6,7 +6,7 @@ These artifacts bind acceptance claims to one project snapshot. Store the applic
 
 | File | Owner | Minimum purpose |
 |---|---|---|
-| `task-contract.json` | Coordinator + architect | Authorization, scope, immutable behavior, and acceptance evidence |
+| `task-contract.json` | Coordinator + architect | Stable project identity, live task delta, authorization, claim stage, protected work, scope, immutable behavior, and acceptance evidence |
 | `snapshot-manifest.json` | Coordinator | Git/diff/source identity, target, defines, parameters, and constraints |
 | `impact-manifest.json` | Architect | Bounded affected cone, domains, shared state, reverse backpressure, and tests |
 | `cycle-contract.json` | Architect | Accepted/completed edges, latency, throughput, alignment, and recovery |
@@ -14,6 +14,7 @@ These artifacts bind acceptance claims to one project snapshot. Store the applic
 | `run-manifest.json` | Runner | Command, cwd, tool/version, exits, seed, libraries, and evidence paths |
 | `simulation-evidence.json` | Runner + independent evidence reviewer | Functional-acceptance profile, cycle comparisons, checker drain, negative canaries, first failure, proof packet |
 | `findings-ledger.json` | Coordinator | Stable finding lifecycle across snapshots and repair rounds |
+| `ip-proof-packet.json` | FPGA engineer + vendor reviewer | Official IP identity, generation method, source-view ownership, contracts, products, OOC/constraints/simulation/reopen evidence |
 
 ## Common identity
 

@@ -14,6 +14,31 @@ Find the single register source. Review address units, alignment, width, endiann
 
 Use CDC/timing and verification pre-review; add vendor/board review for clock primitives or external clocks. Match crossing type to synchronizer, handshake/toggle, stable multi-bit protocol, Gray counter, or async FIFO. Check reconvergence, reset release, pulse visibility, data stability, attributes, MTBF assumptions, generated clocks, I/O delays, and narrow exceptions. Structural and constraint correctness require separate evidence.
 
+Select only the required mode: `CDC_STRUCTURE`, `STA_COVERAGE`,
+`PHYSICAL_QOR`, or `TIMING_CLOSURE`. An async FIFO with missing clock or
+constraint evidence may have a valid structure while timing coverage remains
+UNVERIFIED; do not call that a DUT failure. Compile/smoke does not trigger full
+P&R. Power is NOT APPLICABLE by default.
+
+## Official IP integration
+
+The writer uses `IP_INTEGRATION` and the vendor reviewer audits the result.
+Start with `IP_DISCOVERY`: reuse a matching managed IP, regenerate missing
+products, stage/import copied or legacy configuration, use confirmed official
+Tcl/CLI, or plan GUI-once. Only `IP_INTEGRATION_ACCEPTANCE` requires the full
+IP proof packet, OOC, constraints, simulation model, and canonical-project
+reopen. Internet sources provide official documentation and examples, not
+product IP configuration files to copy.
+
+## Physical implementation
+
+Use only for `IMPLEMENTATION_QOR`, `TIMING_CLOSURE`, or real routed evidence.
+Freeze a baseline, classify logic/route/fanout/congestion/clocking/
+RAM-DSP-GT-IO/constraint root cause, change one primary variable, rerun, and
+keep or revert from comparative evidence. Do not default to seed/strategy,
+whole-design Pblocks, repeated phys-opt, replication, or pipeline insertion.
+Power remains NOT APPLICABLE unless a real budget or claim activates it.
+
 ## Multi-vendor platform
 
 Keep product behavior in common RTL. Wrap PLL/clock/I/O/SERDES/delay/RAM/FIFO/DDR/transceiver/boot/debug and target constraints. Select portable or vendor-optimized implementations by target, not scattered conditionals. Each target needs exact device/tool/IP data, an independent build/report row, and equivalence tests.
@@ -26,7 +51,7 @@ Require exact manuals/schematics and safe defaults before physical steps. Separa
 
 ## File ownership
 
-- Product RTL/constraints/wrappers/build/regmap implementation: `fpga_engineer` only.
+- Product RTL/constraints/wrappers/build/regmap implementation, official IP configuration/recipes, physical changes, and explicitly authorized release packaging: `fpga_engineer` only, one primary mode per batch.
 - Firmware/drivers: `embedded_engineer` in a later sequential batch.
 - Testbench/assertions/reference models: `verification_engineer` in a later sequential batch.
 - Reviews: read-only; reviewers never fix findings.

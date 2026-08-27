@@ -1,6 +1,6 @@
 # Compatibility
 
-Package version: **0.3.3**
+Package version: **0.4.0**
 
 ## Package format
 
@@ -13,4 +13,4 @@ This release uses Codex plugin discovery through `.codex-plugin/plugin.json`, cu
 - Git: 2.54.0.windows.1
 - Operating system: Windows
 
-Static package validation is included. The helpers support vendor detection for AMD/Xilinx Vivado, Pango PDS, and Anlogic TD; exact EDA commands and official libraries remain local project/tool-version facts. The native-runtime contract was exercised on Windows with Vivado 2020.2 and ModelSim SE-64 2020.4 using an isolated, non-shipped FPGA fixture. A separate Vivado canary confirmed a depth-0 `project/par/<name>.xpr` with same-name direct sibling databases. Version 0.3.3 also requires process-local PATH setup and canonical command-name invocation instead of embedded absolute executable files. This does not validate every target, licensed vendor flow, DUT function, STA, CDC/RDC, bitstream, or board result.
+Static package validation is included. The helpers support vendor detection for AMD/Xilinx Vivado, Pango PDS, and Anlogic TD; exact EDA commands and official libraries remain local project/tool-version facts. The native-runtime contract was exercised on Windows with Vivado 2020.2 and ModelSim SE-64 2020.4 using an isolated, non-shipped FPGA fixture. A separate Vivado canary confirmed a depth-0 `project/par/<name>.xpr` with same-name direct sibling databases. Version 0.4.0 statically validates live project/task contracts, writer modes, claim stages, official-IP packet shape, bilingual documentation, clean script roots, and process-local command-name runtime. Fresh-session behavior, Pango/Anlogic generation, every licensed vendor flow, DUT function, physical QoR, timing closure, bitstream, and board results remain target-specific and UNVERIFIED until exercised.

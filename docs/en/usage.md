@@ -1,8 +1,28 @@
 # Usage
 
-[README](../../README.md) · [Architecture](architecture.md) · [Roles](roles.md) · [Installation](installation.md) · [Safety and evidence](safety-and-evidence.md)
+[README](../../README.md) · [Simplified Chinese](../zh-CN/usage.md) · [Architecture](architecture.md) · [Roles](roles.md) · [Installation](installation.md) · [Safety and evidence](safety-and-evidence.md)
 
 Invoke the workflow by naming `$run-fpga-workflow` and stating the desired outcome, write authorization, immutable boundaries, available evidence, and any checks that must or must not run. The workflow will select only the roles relevant to the task.
+
+## Optional project identity card
+
+Use a short identity card to avoid repeated machine-wide discovery:
+
+```text
+Project root:
+Canonical .xpr/.pds/.al:
+Vendor and tool version:
+Full part:
+Product top / simulation top:
+Formal build / simulation / lint entry points:
+Long-term protected boundaries:
+```
+
+This is stable location and target context, not persistent write authority.
+Later prompts create a live task delta and may supplement, supersede, expand,
+or narrow the current task. Clean/overwrite, IP regeneration, implementation,
+release, publishing, and physical actions still require explicit current
+authorization.
 
 ## Mode decision table
 
@@ -28,6 +48,22 @@ Risk never grants permission to edit. Conversely, an explicit request to fix a h
 | Accept a formal, CDC/RDC, implementation/STA, electrical, or release claim | `SPECIALIST_ACCEPTANCE` | Only the evidence family needed by that claim, plus its independent owner/reviewer |
 
 Do not request a full acceptance packet for a simple diagnostic. Do not promote a diagnostic run into `SIMULATION_PASS`.
+
+Qualify the profile with one claim stage:
+
+| Claim stage | Typical meaning |
+|---|---|
+| `PREFLIGHT` | Locate source, tool, target, case, and library facts |
+| `COMPILE` / `SYNTHESIS` | Prove only the corresponding build stage |
+| `SIM_SMOKE` | Real compile/load/bounded run, no functional acceptance |
+| `FUNCTIONAL_SIM` | Requirement-linked simulation acceptance |
+| `IMPLEMENTATION_QOR` | Placed/routed path, congestion, fanout, and QoR work |
+| `TIMING_CLOSURE` | Complete timing-coverage and closure claim |
+| `FORMAL` | Formal property/harness acceptance |
+| `RELEASE` / `BOARD_PREP` | Release artifact or human-controlled board preparation |
+
+Power is NOT APPLICABLE unless explicitly requested or required by a real
+budget.
 
 ## Copyable prompts
 
@@ -105,6 +141,29 @@ parallel decomposition, register cuts, or pipelining as supported by evidence.
 Before adding a stage, freeze latency, protocol, throughput, alignment, backpressure,
 reset, and error semantics. Re-run the confirmed implementation and STA flow; do
 not invent a project-independent logic-depth threshold.
+```
+
+### FULL: official IP integration
+
+```text
+Use $run-fpga-workflow in FULL mode with IP_INTEGRATION. Confirm the project
+identity, installed vendor tool/version, target part, existing managed IP, and
+port/latency/reset contract. Prefer managed reuse, incremental regeneration,
+source-view-safe staging/import, then official local Tcl/CLI. Use official GUI
+automation only once if the current version cannot be scripted safely, and
+export a reproducible recipe. Do not download an online XCI/IDF/IPC as product
+configuration. Produce only the IP proof depth needed by this task.
+```
+
+### FULL: implementation QoR
+
+```text
+Use $run-fpga-workflow with claim_stage=IMPLEMENTATION_QOR. Freeze tool, part,
+sources, constraints, seed, and strategy. Classify the highest-impact real
+path or congestion bottleneck, change one primary variable, rerun the needed
+implementation stage, compare WNS/TNS/hold/route status/congestion/resources/
+runtime, and keep or revert from evidence. Do not start with random seeds,
+whole-design Pblocks, repeated phys-opt, or pipeline changes.
 ```
 
 ### Board-validation planning

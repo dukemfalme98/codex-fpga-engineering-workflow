@@ -1,7 +1,7 @@
 interface:
   display_name: "FPGA Engineering Workflow"
-  short_description: "Single-writer FPGA design with native toolflow evidence"
-  default_prompt: "Use $run-fpga-workflow with stable artifacts, native project/par and simulation/work toolflows, isolated codex_out diagnostics, bounded repair, and independent sign-off."
+  short_description: "Live-contract FPGA engineering with official IP and evidence"
+  default_prompt: "Use $run-fpga-workflow. Normalize stable project identity and the latest task delta, select one writer mode and claim stage, preserve native project/par and simulation/work toolflows, isolate codex_out diagnostics, and require independent sign-off."
   icon_small: "./assets/icon.svg"
   icon_large: "./assets/icon.svg"
 policy:

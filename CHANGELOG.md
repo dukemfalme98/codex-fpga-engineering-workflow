@@ -2,6 +2,33 @@
 
 All notable changes follow Keep a Changelog. Versions follow Semantic Versioning.
 
+## [0.4.0] - 2026-08-28
+
+### Added
+
+- Added stable project identity plus live task deltas so follow-up requests can supplement, supersede, expand, or narrow the current task without repeating machine-wide discovery.
+- Added structured task authorization, protected work, requested claim, claim stages, role modes, and board boundaries while preserving backward-compatible task-contract authorization strings.
+- Added five conditional `fpga_engineer` modes: RTL implementation, official IP integration, build flow, physical implementation, and release packaging.
+- Added the official-IP decision flow and IP proof packet schema covering managed reuse, incremental regeneration, source-view-safe staging/import, installed official Tcl/CLI, and GUI-once fallback.
+- Added evidence-triggered physical implementation guidance with baseline freezing, path classification, one-primary-variable experiments, and keep/revert comparisons.
+- Added `README.zh-CN.md` and complete `docs/zh-CN/` navigation for architecture, roles, installation, usage, and safety/evidence.
+
+### Changed
+
+- Scoped verification, CDC/STA, physical QoR, formal, release, and final review through `claim_stage` without creating a competing evidence-profile system.
+- Made power `NOT APPLICABLE` by default unless a real power, thermal, safety, or release claim activates it.
+- Narrowed final review to integrated contract/snapshot/specialist evidence, conflict resolution, blocking findings, and highest-risk sampling instead of repeating every specialist's full traversal.
+- Standardized generated `simulation/script` to exactly `run.bat`, `setting.txt`, `src_list.txt`, and `vsim.do`. Generated exports, libraries, logs, waves, and `.Xil` remain in `simulation/work`.
+- Simplified generated `project/script` to the build BAT, project setting, canonical source list, and one confirmed vendor Tcl/CLI flow.
+- Updated English landing pages and guides with live identity/task behavior, official IP responsibility, writer modes, claim stages, and physical implementation boundaries.
+
+### Validation
+
+- Parsed all 13 role TOMLs, 11 workflow JSON schemas, and package PowerShell scripts.
+- Exercised task-contract valid/invalid claim-stage cases and a valid official-IP proof packet.
+- Exercised the project scaffold with stable identity, a direct canonical launcher path, three visible build-script files, and four visible simulation-script files.
+- Kept real Xilinx/ModelSim execution evidence from 0.3.2/0.3.3 as diagnostic toolflow evidence; this release does not claim new DUT, Pango, Anlogic, timing-closure, bitstream, or board validation.
+
 ## [0.3.3] - 2026-08-27
 
 ### Changed

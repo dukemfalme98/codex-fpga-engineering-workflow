@@ -1,6 +1,6 @@
 # Installation
 
-[README](../../README.md) · [Architecture](architecture.md) · [Roles](roles.md) · [Usage](usage.md) · [Safety and evidence](safety-and-evidence.md)
+[README](../../README.md) · [Simplified Chinese](../zh-CN/installation.md) · [Architecture](architecture.md) · [Roles](roles.md) · [Usage](usage.md) · [Safety and evidence](safety-and-evidence.md)
 
 ## Prerequisites
 
@@ -130,7 +130,7 @@ explain which project evidence you would read before reviewing an RTL change.
 Do not modify files.
 ```
 
-File verification is not the same as fresh-session discovery. Version 0.3.3 still labels fresh-session end-to-end discovery **UNVERIFIED** until exercised in a clean target environment.
+File verification is not the same as fresh-session behavior. Version 0.4.0 statically validates role/schema/template routing, while identity-card and live-task behavior in each real target remains evidence to exercise in that project.
 
 ## Create a standard FPGA project
 
@@ -144,7 +144,7 @@ pwsh -NoProfile -File .\scripts\new-fpga-project.ps1 `
   -Vendor XILINX
 ```
 
-Use `PANGO` or `ANLOGIC` for those targets. The scaffold emits one fail-closed native build adapter and one fail-closed native simulator adapter, and always uses canonical unsuffixed directories. The real launcher must be a depth-0 `project/par/<project-name>.xpr|.pds|.al`, never a nested `par/vivado_project` or `par/build` project. Configure a tool root/vendor environment, use only a process-local PATH, and invoke canonical commands by name rather than embedding absolute executable files. Generated-project runtime does not require Codex-bundled PowerShell. Formal build state stays in `project/par`, formal ModelSim/Questa state stays in `simulation/work`, and Codex diagnostics stay in `codex_out`.
+Use `PANGO` or `ANLOGIC` for those targets. The scaffold records stable project identity, emits a fail-closed `project/script/run.bat`, and keeps `simulation/script` at exactly `run.bat`, `setting.txt`, `src_list.txt`, and `vsim.do`. Add one confirmed vendor Tcl/CLI flow beside the build BAT; generated export scripts, libraries, logs, and waves remain under `simulation/work`. The real launcher must be a depth-0 `project/par/<project-name>.xpr|.pds|.al`, never a nested `par/vivado_project` or `par/build` project. Configure a tool root/vendor environment, use only a process-local PATH, and invoke canonical commands by name rather than embedding absolute executable files.
 
 ## Upgrade
 

@@ -3,6 +3,7 @@ param(
     [Parameter(Mandatory)][string]$ProjectRoot,
     [ValidateSet('Build', 'Simulation', 'Lint')][string]$Purpose,
     [ValidateSet('XILINX', 'PANGO', 'ANLOGIC')][string]$ExpectedVendor,
+    [string]$CommandName,
     [string[]]$PreparedLibraryNames = @()
 )
 
@@ -17,9 +18,24 @@ elseif (-not [string]::IsNullOrWhiteSpace($ExpectedVendor) -and $detection.vendo
 }
 
 $requiredLists = switch ($Purpose) {
-    'Build' { @(@{ Path='project/script/src_list.txt'; NonEmpty=$true }, @{ Path='project/script/ip_list.txt'; NonEmpty=$false }, @{ Path='project/script/include_dirs.txt'; NonEmpty=$false }, @{ Path='project/script/defines.txt'; NonEmpty=$false }) }
-    'Simulation' { @(@{ Path='simulation/script/product_list.txt'; NonEmpty=$true }, @{ Path='simulation/script/src_list.txt'; NonEmpty=$true }, @{ Path='simulation/script/model_list.txt'; NonEmpty=$false }, @{ Path='simulation/script/ip_list.txt'; NonEmpty=$false }, @{ Path='simulation/script/include_dirs.txt'; NonEmpty=$false }, @{ Path='simulation/script/defines.txt'; NonEmpty=$false }) }
+    'Build' { @(@{ Path='project/script/src_list.txt'; NonEmpty=$true }) }
+    'Simulation' { @(@{ Path='simulation/script/src_list.txt'; NonEmpty=$true }) }
     'Lint' { @(@{ Path='linter/script/lint_list.txt'; NonEmpty=$true }) }
+}
+$requiredEntryPoints = switch ($Purpose) {
+    'Build' { @('project/script/run.bat','project/script/setting.bat') }
+    'Simulation' { @('simulation/script/run.bat','simulation/script/setting.txt','simulation/script/vsim.do') }
+    'Lint' { @('linter/script/run.bat') }
+}
+foreach ($relative in $requiredEntryPoints) {
+    if (-not (Test-Path -LiteralPath (Join-Path $root ($relative -replace '/', [IO.Path]::DirectorySeparatorChar)) -PathType Leaf)) {
+        $issues.Add("Missing entry-point file: $relative")
+    }
+}
+$listBase = switch ($Purpose) {
+    'Build' { Join-Path $root 'project\par' }
+    'Simulation' { Join-Path $root 'simulation\work' }
+    'Lint' { $root }
 }
 foreach ($listSpec in $requiredLists) {
     $relativeList = [string]$listSpec.Path
@@ -30,34 +46,33 @@ foreach ($listSpec in $requiredLists) {
         $trimmed = $line.Trim()
         if ([string]::IsNullOrWhiteSpace($trimmed) -or $trimmed.StartsWith('#')) { continue }
         $usableEntries++
-        $candidate = [IO.Path]::GetFullPath((Join-Path $root ($trimmed -replace '/', [IO.Path]::DirectorySeparatorChar)))
-        if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { $issues.Add("File list entry does not exist: $trimmed") }
+        if ($trimmed.StartsWith('+incdir+')) {
+            $include = $trimmed.Substring(8)
+            $candidate = [IO.Path]::GetFullPath((Join-Path $listBase ($include -replace '/', [IO.Path]::DirectorySeparatorChar)))
+            if (-not (Test-Path -LiteralPath $candidate -PathType Container)) { $issues.Add("Include directory does not exist: $include") }
+        } else {
+            $candidate = [IO.Path]::GetFullPath((Join-Path $listBase ($trimmed -replace '/', [IO.Path]::DirectorySeparatorChar)))
+            if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { $issues.Add("File list entry does not exist: $trimmed") }
+        }
     }
     if ($listSpec.NonEmpty -and $usableEntries -eq 0) { $issues.Add("File list is empty: $relativeList") }
 }
 
-$settingsPath = Join-Path $root 'project\script\setting.psd1'
-$localPath = Join-Path $root 'project\script\toolchain.local.psd1'
-if (-not (Test-Path -LiteralPath $settingsPath -PathType Leaf)) { $issues.Add('Missing project/script/setting.psd1.') }
-$settings = if (Test-Path -LiteralPath $settingsPath -PathType Leaf) { Import-PowerShellDataFile -LiteralPath $settingsPath } else { @{} }
-$local = if (Test-Path -LiteralPath $localPath -PathType Leaf) { Import-PowerShellDataFile -LiteralPath $localPath } else { @{} }
-
-$commandKey = switch ($Purpose) { 'Build' { 'BuildCommand' } 'Simulation' { 'SimulatorCommand' } 'Lint' { 'LintCommand' } }
-$command = if ($local.ContainsKey($commandKey)) { [string]$local[$commandKey] } else { '' }
+$command = [string]$CommandName
 if ([string]::IsNullOrWhiteSpace($command)) {
-    $issues.Add("$commandKey is not configured in ignored project/script/toolchain.local.psd1.")
-} elseif (-not (Test-Path -LiteralPath $command -PathType Leaf) -and $null -eq (Get-Command $command -ErrorAction SilentlyContinue)) {
-    $issues.Add("Configured command is unavailable: $command")
+    $issues.Add('TOOL_ENV_FAIL: provide the project-confirmed canonical command name with -CommandName; this helper does not guess Pango/Anlogic commands.')
+} elseif ($null -eq (Get-Command $command -ErrorAction SilentlyContinue)) {
+    $issues.Add("TOOL_ENV_FAIL: configured command is unavailable: $command")
 }
 
 if ($Purpose -eq 'Simulation') {
-    if (-not $settings.ContainsKey('SimulationTop') -or [string]::IsNullOrWhiteSpace([string]$settings.SimulationTop)) { $issues.Add('SimulationTop is not configured.') }
-    $requiredLibraries = if ($settings.ContainsKey('RequiredSimulationLibraries')) { @($settings.RequiredSimulationLibraries) } else { @() }
-    $libraryMap = if ($local.ContainsKey('SimulationLibraries')) { $local.SimulationLibraries } else { @{} }
-    foreach ($library in $requiredLibraries) {
-        if (-not $libraryMap.ContainsKey([string]$library) -and [string]$library -notin $PreparedLibraryNames) {
-            $issues.Add("MISSING_VENDOR_LIBRARY: $library. Provide an official compiled library mapping or a validated recipe; do not fabricate a model.")
-        }
+    $simulationSetting = Join-Path $root 'simulation\script\setting.txt'
+    if (Test-Path -LiteralPath $simulationSetting -PathType Leaf) {
+        $settingText = [IO.File]::ReadAllText($simulationSetting)
+        if ($settingText -notmatch '(?m)^\s*set\s+sim_top\s+\S+') { $issues.Add('Simulation top is not configured in simulation/script/setting.txt.') }
+    }
+    foreach ($library in $PreparedLibraryNames) {
+        if ([string]::IsNullOrWhiteSpace([string]$library)) { $issues.Add('MISSING_VENDOR_LIBRARY: an empty prepared-library name was provided.') }
     }
 }
 
@@ -71,7 +86,7 @@ $status = if ($issues.Count -eq 0) { 'PASS' } elseif ($issues | Where-Object { $
     issues = @($issues)
     preparation_checklist = @(
         'Install or select the exact vendor tool and simulator version required by the project.',
-        'Copy toolchain.local.psd1.example to toolchain.local.psd1 and set verified executable paths.',
+        'Configure the project-local BAT setting with a verified tool root/environment and pass the canonical command name to this helper.',
         'Map only official simulation libraries that match the vendor, family, tool, and simulator version.',
         'Re-run the one-click wrapper; do not substitute approximate primitive models.'
     )

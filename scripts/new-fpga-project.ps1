@@ -26,20 +26,23 @@ if (Test-Path -LiteralPath $destinationFull) {
 if ([string]::IsNullOrWhiteSpace($SimulationTop)) { $SimulationTop = "tb_$TopModule" }
 
 $vendorSpec = switch ($Vendor) {
-    'XILINX' { @{ Extension = '.xpr' } }
-    'PANGO' { @{ Extension = '.pds' } }
-    'ANLOGIC' { @{ Extension = '.al' } }
+    'XILINX' { @{ Extension = '.xpr'; Tool = 'Vivado' } }
+    'PANGO' { @{ Extension = '.pds'; Tool = 'PDS' } }
+    'ANLOGIC' { @{ Extension = '.al'; Tool = 'TD' } }
 }
+$canonicalProjectEntry = "project/par/$ProjectName$($vendorSpec.Extension)"
 $tokens = [ordered]@{
     '__PROJECT_NAME__' = $ProjectName
     '__TOP_MODULE__' = $TopModule
     '__VENDOR__' = $Vendor
+    '__TOOL__' = $vendorSpec.Tool
     '__TOOL_VERSION__' = $ToolVersion
     '__DEVICE__' = $Device
     '__PACKAGE__' = $Package
     '__SIMULATION_TOP__' = $SimulationTop
     '__DEFAULT_CASE__' = $DefaultSimulationCase
     '__PROJECT_EXTENSION__' = $vendorSpec.Extension
+    '__CANONICAL_PROJECT_ENTRY__' = $canonicalProjectEntry
 }
 
 function Expand-Template([string]$Source, [string]$Target) {
@@ -67,27 +70,26 @@ Expand-Template (Join-Path $templateRoot 'common\AGENTS.md') (Join-Path $destina
 Expand-Template (Join-Path $templateRoot 'common\.gitignore.template') (Join-Path $destinationFull '.gitignore')
 Expand-Template (Join-Path $templateRoot 'common\setting.bat.template') (Join-Path $destinationFull 'project\script\setting.bat')
 Expand-Template (Join-Path $templateRoot 'common\build-run.bat.template') (Join-Path $destinationFull 'project\script\run.bat')
-Expand-Template (Join-Path $templateRoot 'common\vendor-build.bat.template') (Join-Path $destinationFull 'project\script\vendor-build.bat')
 Expand-Template (Join-Path $templateRoot 'common\simulation-run.bat.template') (Join-Path $destinationFull 'simulation\script\run.bat')
-Expand-Template (Join-Path $templateRoot 'common\vendor-sim.bat.template') (Join-Path $destinationFull 'simulation\script\vendor-sim.bat')
+Expand-Template (Join-Path $templateRoot 'common\simulation-setting.txt.template') (Join-Path $destinationFull 'simulation\script\setting.txt')
+Expand-Template (Join-Path $templateRoot 'common\vsim.do.template') (Join-Path $destinationFull 'simulation\script\vsim.do')
 Expand-Template (Join-Path $templateRoot 'common\lint-run.bat.template') (Join-Path $destinationFull 'linter\script\run.bat')
 
-foreach ($relative in @('project\script\src_list.txt','project\script\ip_list.txt','project\script\include_dirs.txt','project\script\defines.txt','project\script\compile_order.txt','simulation\script\product_list.txt','simulation\script\src_list.txt','simulation\script\model_list.txt','simulation\script\ip_list.txt','simulation\script\include_dirs.txt','simulation\script\defines.txt','simulation\script\compile_order.txt','linter\script\lint_list.txt')) {
+foreach ($relative in @('project\script\src_list.txt','simulation\script\src_list.txt','linter\script\lint_list.txt')) {
     [IO.File]::WriteAllText((Join-Path $destinationFull $relative), '', [Text.UTF8Encoding]::new($false))
 }
-[IO.File]::WriteAllText((Join-Path $destinationFull 'simulation\script\cases.txt'), $DefaultSimulationCase + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
 
 $target = [ordered]@{
     schema_version = '1.0.0'
     target_id = "$ProjectName-$($Vendor.ToLowerInvariant())"
     vendor = $Vendor
-    tool = @{ version = $ToolVersion; project_file = $null }
+    tool = @{ name = $vendorSpec.Tool; version = $ToolVersion; project_file = $null }
     top = $TopModule
     device = $Device
     package = $Package
     simulation = @{ top = $SimulationTop; default_case = $DefaultSimulationCase; required_libraries = @() }
-    selected_adapter = @{ build = 'project/script/vendor-build.bat'; simulation = 'simulation/script/vendor-sim.bat' }
-    canonical_project_file = "project/par/$ProjectName$($vendorSpec.Extension)"
+    selected_adapter = @{ build = 'project/script/run.bat'; simulation = 'simulation/script/run.bat' }
+    canonical_project_file = $canonicalProjectEntry
     status = 'UNVERIFIED'
 }
 [IO.File]::WriteAllText((Join-Path $destinationFull 'project\target.fpga.json'), (($target | ConvertTo-Json -Depth 8) + [Environment]::NewLine), [Text.UTF8Encoding]::new($false))
@@ -96,8 +98,8 @@ $target = [ordered]@{
     status = 'SCAFFOLDED_UNVERIFIED'
     project_root = $destinationFull
     vendor = $Vendor
-    build_adapter = 'project/script/vendor-build.bat'
-    simulation_adapter = 'simulation/script/vendor-sim.bat'
-    canonical_project_file = "project/par/$ProjectName$($vendorSpec.Extension)"
-    next_step = "Create the real depth-0 project/par/$ProjectName$($vendorSpec.Extension) with a confirmed native tool recipe, replace the fail-closed BAT adapters, then double-click run.bat. Do not add an extra project container under par."
+    build_adapter = 'project/script/run.bat'
+    simulation_adapter = 'simulation/script/run.bat'
+    canonical_project_file = $canonicalProjectEntry
+    next_step = "Create the real depth-0 $canonicalProjectEntry with a confirmed native Tcl/CLI recipe beside project/script/run.bat, configure simulation/script/vsim.do, then double-click run.bat. Do not add an extra project container under par."
 }

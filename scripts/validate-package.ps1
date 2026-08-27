@@ -18,12 +18,17 @@ $required = @(
     'skills/run-fpga-workflow/references/model-card.md',
     'skills/run-fpga-workflow/references/vendor-adapters.md',
     'skills/run-fpga-workflow/references/project-layout.md',
+    'skills/run-fpga-workflow/references/project-identity-and-task-delta.md',
+    'skills/run-fpga-workflow/references/ip-integration.md',
+    'skills/run-fpga-workflow/references/physical-implementation.md',
     'skills/run-fpga-workflow/references/private-fault-library.md',
     'skills/run-fpga-workflow/references/shadow-rollout.md',
-    'templates/AGENTS.fpga.md', 'README.md', 'assets/hero.svg', 'LICENSE', 'SECURITY.md',
+    'templates/AGENTS.fpga.md', 'README.md', 'README.zh-CN.md', 'assets/hero.svg', 'LICENSE', 'SECURITY.md',
     'VERSION', 'CHANGELOG.md', 'COMPATIBILITY.md', 'docs/research.md',
     'docs/en/architecture.md', 'docs/en/roles.md', 'docs/en/installation.md',
     'docs/en/usage.md', 'docs/en/safety-and-evidence.md',
+    'docs/zh-CN/README.md', 'docs/zh-CN/architecture.md', 'docs/zh-CN/roles.md',
+    'docs/zh-CN/installation.md', 'docs/zh-CN/usage.md', 'docs/zh-CN/safety-and-evidence.md',
     'scripts/detect-vendor.ps1', 'scripts/update-filelists.ps1', 'scripts/preflight-project.ps1',
     'scripts/prepare-vendor-libraries.ps1', 'scripts/new-fpga-project.ps1', 'scripts/fault-library.ps1',
     'scripts/validate-simulation-evidence.ps1',
@@ -32,10 +37,10 @@ $required = @(
     'templates/fpga-project/common/AGENTS.md',
     'templates/fpga-project/common/build-run.bat.template',
     'templates/fpga-project/common/simulation-run.bat.template',
+    'templates/fpga-project/common/simulation-setting.txt.template',
+    'templates/fpga-project/common/vsim.do.template',
     'templates/fpga-project/common/lint-run.bat.template',
-    'templates/fpga-project/common/setting.bat.template',
-    'templates/fpga-project/common/vendor-build.bat.template',
-    'templates/fpga-project/common/vendor-sim.bat.template'
+    'templates/fpga-project/common/setting.bat.template'
 )
 foreach ($rel in $required) {
     $path = Join-Path $root ($rel -replace '/', [IO.Path]::DirectorySeparatorChar)
@@ -67,7 +72,7 @@ if ($plugin.skills -ne './skills/') { Add-CheckError 'Plugin skills path mismatc
 foreach ($unsupported in @('apps','mcpServers','hooks')) { if ($plugin.PSObject.Properties.Name -contains $unsupported) { Add-CheckError "Unexpected manifest field: $unsupported" } }
 
 $skillText = Get-Content -LiteralPath (Join-Path $root 'skills\run-fpga-workflow\SKILL.md') -Raw
-foreach ($reference in @('references/task-profiles.md','references/workflow-artifacts.md','references/temporal-evidence.md','references/model-card.md','references/vendor-adapters.md','references/project-layout.md','references/private-fault-library.md','references/shadow-rollout.md','references/improvement-policy.md','references/improvement-evidence.md')) { if ($skillText -notmatch [regex]::Escape($reference)) { Add-CheckError "Skill does not reference $reference" } }
+foreach ($reference in @('references/task-profiles.md','references/workflow-artifacts.md','references/temporal-evidence.md','references/model-card.md','references/vendor-adapters.md','references/project-layout.md','references/project-identity-and-task-delta.md','references/ip-integration.md','references/physical-implementation.md','references/private-fault-library.md','references/shadow-rollout.md','references/improvement-policy.md','references/improvement-evidence.md')) { if ($skillText -notmatch [regex]::Escape($reference)) { Add-CheckError "Skill does not reference $reference" } }
 if ($skillText -notmatch 'only `fpga_engineer` writes product') { Add-CheckError 'Single product-writer gate is missing from skill.' }
 if ($skillText -notmatch 'at most three automatic repair/re-review rounds') { Add-CheckError 'Three-round repair stop is missing from skill.' }
 if ($skillText -notmatch 'two consecutive no-progress rounds') { Add-CheckError 'Two-no-progress stop is missing from skill.' }
@@ -77,7 +82,7 @@ if ($skillText -notmatch 'depth-0' -or $skillText -notmatch 'process PATH') { Ad
 if ($skillText -match 'out/codex') { Add-CheckError 'Deprecated out/codex path remains in skill.' }
 
 $schemaFiles = Get-ChildItem -LiteralPath (Join-Path $root 'skills\run-fpga-workflow\references\schemas') -File -Filter '*.schema.json'
-if ($schemaFiles.Count -ne 10) { Add-CheckError "Expected 10 workflow JSON Schemas; found $($schemaFiles.Count)." }
+if ($schemaFiles.Count -ne 11) { Add-CheckError "Expected 11 workflow JSON Schemas; found $($schemaFiles.Count)." }
 foreach ($schema in $schemaFiles) {
     try { $null = Get-Content -LiteralPath $schema.FullName -Raw -Encoding UTF8 | ConvertFrom-Json } catch { Add-CheckError "Invalid JSON Schema: $($schema.Name)" }
 }
@@ -95,7 +100,10 @@ if ($batchTemplate -notmatch [regex]::Escape('%~dp0')) { Add-CheckError 'One-cli
 if ($simulationBatchTemplate -notmatch [regex]::Escape('%~dp0')) { Add-CheckError 'Simulation batch template is not anchored with %~dp0.' }
 if ($batchTemplate -match '(?i)pwsh|powershell|\.ps1|\.psd1' -or $simulationBatchTemplate -match '(?i)pwsh|powershell|\.ps1|\.psd1') { Add-CheckError 'Generated user runtime still depends on PowerShell.' }
 if ($batchTemplate -match '(?i)VIVADO_BAT|MODELSIM_EXE|[A-Z]:\\[^\r\n"]+\.(exe|bat)' -or $simulationBatchTemplate -match '(?i)VIVADO_BAT|MODELSIM_EXE|[A-Z]:\\[^\r\n"]+\.(exe|bat)') { Add-CheckError 'Generated runtime embeds an absolute executable file.' }
-if ($batchTemplate -notmatch 'vendor-build\.bat' -or $simulationBatchTemplate -notmatch 'vendor-sim\.bat') { Add-CheckError 'Native vendor BAT adapters are missing from one-click templates.' }
+if ($batchTemplate -match 'vendor-build\.bat' -or $simulationBatchTemplate -match 'vendor-sim\.bat') { Add-CheckError 'Deprecated visible vendor BAT wrappers remain in generated runtime.' }
+foreach ($removedTemplate in @('templates/fpga-project/common/vendor-build.bat.template','templates/fpga-project/common/vendor-sim.bat.template')) {
+    if (Test-Path -LiteralPath (Join-Path $root ($removedTemplate -replace '/', [IO.Path]::DirectorySeparatorChar))) { Add-CheckError "Deprecated template remains: $removedTemplate" }
+}
 $scaffoldText = Get-Content -LiteralPath (Join-Path $root 'scripts\new-fpga-project.ps1') -Raw
 foreach ($canonical in @('project/rtl','project/par','project/script','simulation/script','linter/script','release/output')) {
     if ($scaffoldText -notmatch [regex]::Escape($canonical)) { Add-CheckError "Canonical scaffold path is missing: $canonical" }
@@ -103,7 +111,7 @@ foreach ($canonical in @('project/rtl','project/par','project/script','simulatio
 if ($scaffoldText -match '(?i)(project2|par2|script2)') { Add-CheckError 'Generated scaffold contains a numbered standard directory.' }
 if ($scaffoldText -match [regex]::Escape('script\ai_run')) { Add-CheckError 'Generated user runtime still creates script/ai_run.' }
 if ($scaffoldText -notmatch 'canonical_project_file') { Add-CheckError 'Scaffold does not report the depth-0 canonical project file.' }
-foreach ($nativePath in @('project\script\setting.bat','project\script\vendor-build.bat','simulation\script\vendor-sim.bat')) {
+foreach ($nativePath in @('project\script\setting.bat','project\script\src_list.txt','simulation\script\setting.txt','simulation\script\src_list.txt','simulation\script\vsim.do')) {
     if ($scaffoldText -notmatch [regex]::Escape($nativePath)) { Add-CheckError "Scaffold is missing native runtime file: $nativePath" }
 }
 $temporal = Get-Content -LiteralPath (Join-Path $root '.codex\agents\fpga_temporal_evidence_reviewer.toml') -Raw
@@ -115,13 +123,15 @@ $allTextFiles = Get-ChildItem -LiteralPath $root -File -Recurse | Where-Object {
 $privatePattern = '(?i)(' + 'C:' + '\\Users\\' + '|/home/[^/]+/|' + '\.codex\\memories' + '|D:' + '\\PDS|' + 'customer[-_ ]?name\s*[:=])'
 $printSpecificPattern = '(?i)(' + 'print' + 'ing head|' + 'print' + 'head|' + [char]0x55B7 + [char]0x5934 + '|' + [char]0x5DE5 + [char]0x4E1A + [char]0x6253 + [char]0x5370 + ')'
 $cjkPattern = '[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]'
-$deletedReferencePattern = '(?i)(README\.en\.md|CONTRIBUTING\.zh-CN\.md|docs[/\\]zh-CN)'
+$deletedReferencePattern = '(?i)(README\.en\.md|CONTRIBUTING\.zh-CN\.md)'
 foreach ($file in $allTextFiles) {
     try { $content = [IO.File]::ReadAllText($file.FullName, [Text.UTF8Encoding]::new($false, $true)) } catch { Add-CheckError "Invalid UTF-8: $($file.FullName)"; continue }
     if ($content -match '(?i)(ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|AKIA[0-9A-Z]{16})') { Add-CheckError "Possible secret: $($file.FullName)" }
     if ($content -match $privatePattern) { Add-CheckError "Possible private/absolute path or customer marker: $($file.FullName)" }
     if ($content -match $printSpecificPattern) { Add-CheckError "Industrial-print-specific wording remains: $($file.FullName)" }
-    if ($content -match $cjkPattern) { Add-CheckError "CJK Unified Ideograph remains in public text: $($file.FullName)" }
+    $relativePublicPath = [IO.Path]::GetRelativePath($root, $file.FullName) -replace '\\','/'
+    $isChineseDoc = $relativePublicPath -eq 'README.zh-CN.md' -or $relativePublicPath.StartsWith('docs/zh-CN/', [StringComparison]::Ordinal)
+    if ($content -match $cjkPattern -and -not $isChineseDoc) { Add-CheckError "CJK Unified Ideograph remains outside localized documentation: $($file.FullName)" }
     if ($content -match $deletedReferencePattern) { Add-CheckError "Reference to a removed localized document remains: $($file.FullName)" }
 }
 
@@ -130,13 +140,8 @@ foreach ($removedPath in @('README.en.md', 'CONTRIBUTING.zh-CN.md')) {
         Add-CheckError "Removed localized path still exists: $removedPath"
     }
 }
-$removedDocsPath = Join-Path $root 'docs\zh-CN'
-if ((Test-Path -LiteralPath $removedDocsPath) -and (Get-ChildItem -LiteralPath $removedDocsPath -Force | Select-Object -First 1)) {
-    Add-CheckError 'Removed localized path still contains files: docs/zh-CN'
-}
-
 if ($errors.Count -gt 0) {
     $errors | ForEach-Object { Write-Host "ERROR: $_" -ForegroundColor Red }
     throw "Package validation failed with $($errors.Count) error(s)."
 }
-Write-Host "Package validation passed for version $expectedVersion`: 13 agents, 10 strict read-only roles, workflow schemas, native BAT runtime templates, package PowerShell parse, UTF-8, English-only public text, and public-content scans."
+Write-Host "Package validation passed for version $expectedVersion`: 13 agents, 10 strict read-only roles, 11 workflow schemas, clean native BAT/DO templates, package PowerShell parse, UTF-8, English runtime content, allowed zh-CN documentation, and public-content scans."
